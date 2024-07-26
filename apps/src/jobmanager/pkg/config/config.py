@@ -10,7 +10,7 @@ class Config:
 
         # Redis parameters
         self.REDIS_MASTER_SERVER = os.getenv("REDIS_MASTER_SERVER")
-        self.REDIS_SLAVE_SERVERS = os.getenv("REDIS_SLAVE_SERVERS")
+        self.REDIS_SLAVES_SERVERS = os.getenv("REDIS_SLAVES_SERVERS")
         self.REDIS_PORT = os.getenv("REDIS_PORT")
         self.REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
 
@@ -21,7 +21,7 @@ class Config:
             return False
         if not self.REDIS_MASTER_SERVER:
             return False
-        if not self.REDIS_SLAVE_SERVERS:
+        if not self.REDIS_SLAVES_SERVERS:
             return False
         if not self.REDIS_PORT:
             return False

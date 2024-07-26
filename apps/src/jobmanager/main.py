@@ -31,7 +31,7 @@ def main():
 
     cache = RedisClient(
         redis_master_server=cfg.REDIS_MASTER_SERVER,
-        redis_slave_servers=cfg.REDIS_SLAVE_SERVERS,
+        redis_slave_servers=cfg.REDIS_SLAVES_SERVERS,
         redis_port=cfg.REDIS_PORT,
         redis_password=cfg.REDIS_PASSWORD,
     )
