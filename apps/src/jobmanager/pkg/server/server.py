@@ -50,6 +50,8 @@ class Server:
     ):
         try:
             jobs = json.loads(self.cache.get("jobs"))
+            logger.info(jobs)
+
             resp = Response(
                 response=json.dumps(jobs),
                 status=200,

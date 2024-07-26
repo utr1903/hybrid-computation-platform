@@ -41,7 +41,7 @@ class Consumer:
         for message in self.consumer:
             logger.info(message.value)
             self.cache.set(
-                key="job",
+                key="jobs",
                 value=json.dumps(message.value),
             )
             logger.info("Message is set in Redis.")
