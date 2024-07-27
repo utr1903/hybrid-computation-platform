@@ -68,13 +68,13 @@ jobmanagerImageName="${containerRegistry}/${containerRegistryUsername}/${project
 ### Build & Push ###
 ####################
 
-# # gateway
-# docker build \
-#   --platform "linux/${platform}" \
-#   --tag "${gatewayImageName}" \
-#   --build-arg="APP_NAME=${gateway}" \
-#   "./${gateway}"
-# docker push "${gatewayImageName}"
+# gateway
+docker build \
+  --platform "linux/${platform}" \
+  --tag "${gatewayImageName}" \
+  --build-arg="APP_NAME=${gateway}" \
+  "./${gateway}"
+docker push "${gatewayImageName}"
 
 # jobcreator
 docker build \
