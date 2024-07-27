@@ -17,7 +17,7 @@ class Server:
         cache: RedisClient,
     ):
         self.app = Flask(__name__)
-        self.app.debug = False
+        self.app.debug = True
         self.app.use_reloader = False
         self.register_endpoints()
 
@@ -49,9 +49,16 @@ class Server:
         self,
     ):
         try:
+            logger.info("Listing jobs...")
             jobs = json.loads(self.cache.get("jobs"))
-            logger.info(jobs)
+            if jobs is None:
+                resp = Response(
+                    response=json.dumps([]),
+                    status=200,
+                    mimetype="application/json",
+                )
 
+            logger.info(jobs)
             resp = Response(
                 response=json.dumps(jobs),
                 status=200,
