@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 
 from kafka import KafkaConsumer
-from pkg.redis.client import RedisClient
+from pkg.cache.redis import RedisClient
 from pkg.data.jobs import JobRequestDto, JobCreationDto
 
 logger = logging.getLogger(__name__)
