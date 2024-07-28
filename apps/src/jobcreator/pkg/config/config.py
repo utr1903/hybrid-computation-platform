@@ -34,6 +34,8 @@ class Config:
             return False
         if not self.CACHE_MASTER_ADDRESS:
             return False
+        if not self.CACHE_SLAVE_ADDRESS:
+            return False
         if not self.CACHE_PORT:
             return False
         if not self.CACHE_PASSWORD:

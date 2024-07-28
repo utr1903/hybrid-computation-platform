@@ -5,6 +5,7 @@ from pkg.config.config import Config
 from pkg.server.server import Server
 from pkg.broker.kafkaconsumer import BrokerConsumerKafka
 from pkg.cache.redis import CacheRedis
+from pkg.jobs.creator import JobCreator
 
 
 def setLoggingLevel(
@@ -29,6 +30,7 @@ def processJobRequests(
     brokerTopic: str,
     brokerConsumerGroup: str,
 ):
+    # Instantiate Redis cache
     redis = CacheRedis(
         masterAddress=cacheMasterAddress,
         slaveAddress=cacheSlaveAddress,
@@ -36,13 +38,18 @@ def processJobRequests(
         password=cachePassword,
     )
 
-    consumer = BrokerConsumerKafka(
+    # Instantiate Kafka consumer
+    kafkaConsumer = BrokerConsumerKafka(
         bootstrapServers=brokerAddress,
         topic=brokerTopic,
         consumerGroupId=brokerConsumerGroup,
-        cache=redis,
     )
-    consumer.consume()
+
+    # Run the job creator
+    JobCreator(
+        brokerConsumer=kafkaConsumer,
+        cache=redis,
+    ).run()
 
 
 def startServer():

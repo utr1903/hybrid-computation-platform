@@ -44,7 +44,7 @@ fi
 # broker
 brokerName="kafka"
 brokerNamespace="platform"
-brokerAdress="${brokerName}.${brokerNamespace}.svc.cluster.local:9092"
+brokerAddress="${brokerName}.${brokerNamespace}.svc.cluster.local:9092"
 brokerTopic="jobs"
 brokerConsumerGroup="jobcreator"
 
@@ -53,7 +53,8 @@ cacheName="redis"
 cacheNamespace="platform"
 cacheAddressMaster="${cacheName}-master.${cacheNamespace}.svc.cluster.local"
 cacheAddressSlave="${cacheName}-replicas.${cacheNamespace}.svc.cluster.local"
-cachePort="6379"
+cachePort=6379
+cachePassword="megasecret"
 
 # jobcreator
 jobcreatorName="jobcreator"
