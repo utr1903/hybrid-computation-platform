@@ -1,7 +1,8 @@
 import redis
 
+from pkg.cache.cache import Cache
 
-class CacheRedis:
+class CacheRedis(Cache):
 
     def __init__(
         self,
