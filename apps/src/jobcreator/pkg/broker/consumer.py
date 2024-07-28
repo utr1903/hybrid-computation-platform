@@ -1,9 +1,6 @@
 import logging
-import uuid
-from datetime import datetime
 from abc import ABC, abstractmethod
 
-from pkg.data.jobs import JobRequestDto, JobCreationDto
 
 logger = logging.getLogger(__name__)
 
