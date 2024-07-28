@@ -4,37 +4,31 @@ import uuid
 from datetime import datetime
 
 from kafka import KafkaConsumer
-from pkg.cache.redis import RedisClient
+from pkg.cache.cache import Cache
 from pkg.data.jobs import JobRequestDto, JobCreationDto
 
 logger = logging.getLogger(__name__)
 
 
-class Consumer:
+class BrokerConsumerKafka:
 
     def __init__(
         self,
-        bootstrap_servers: str,
+        bootstrapServers: str,
         topic: str,
-        consumer_group_id: str,
-        redis_master_server: str,
-        redis_port: int,
-        redis_password: str,
+        consumerGroupId: str,
+        cache: Cache,
     ):
         # Kafka
         self.topic = topic
         self.consumer = KafkaConsumer(
-            bootstrap_servers=bootstrap_servers,
-            group_id=consumer_group_id,
+            bootstrap_servers=bootstrapServers,
+            group_id=consumerGroupId,
             # value_deserializer=lambda m: json.loads(m.decode("ascii")),
         )
 
         # Redis
-        self.cache = RedisClient(
-            redis_master_server=redis_master_server,
-            redis_port=redis_port,
-            redis_password=redis_password,
-        )
+        self.cache = cache
 
     def consume(
         self,

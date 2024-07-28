@@ -1,29 +1,38 @@
 import redis
 
 
-class RedisClient:
+class CacheRedis:
+
     def __init__(
         self,
-        redis_master_server: str,
-        redis_port: int,
-        redis_password: str,
+        masterAddress: str,
+        slaveAddress: str,
+        port: int,
+        password: str,
     ):
-        self.client = redis.Redis(
-            host=redis_master_server,
-            port=redis_port,
+        self.master = redis.Redis(
+            host=masterAddress,
+            port=port,
             db=0,
-            password=redis_password,
+            password=password,
+        )
+
+        self.slave = redis.Redis(
+            host=slaveAddress,
+            port=port,
+            db=0,
+            password=password,
         )
 
     def set(
         self,
         key,
         value,
-    ):
-        self.client.set(key, value)
+    ) -> None:
+        self.master.set(key, value)
 
     def get(
         self,
         key,
-    ):
-        return self.client.get(key)
+    ) -> bool:
+        return self.slave.get(key) is True
