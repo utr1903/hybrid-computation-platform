@@ -3,7 +3,7 @@ import multiprocessing
 
 from pkg.config.config import Config
 from pkg.server.server import Server
-from pkg.kafka.consumer import Consumer
+from pkg.broker.kafka import Consumer
 
 
 def setLoggingLevel(
