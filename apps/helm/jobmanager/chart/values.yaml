@@ -1,0 +1,40 @@
+### Variables
+
+# Name
+name: jobmanager
+
+# Logs
+logs:
+  # Level
+  level: "INFO"
+
+# Replicas
+replicas: 1
+
+# Resources
+resources:
+  # Requests
+  requests:
+    # CPU
+    cpu: 20m
+    # Memory
+    memory: 50Mi
+  # Limits
+  limits:
+    # CPU
+    cpu: 800m
+    # Memory
+    memory: 1000Mi
+
+# Redis
+redis:
+  # Address
+  addresses:
+    # Master
+    master: "redis-master.platform.svc.cluster.local"
+    # Slaves
+    master: "redis-replicas.platform.svc.cluster.local"
+  # Port
+  port: 6379
+  # Password
+  password: "megasecret"
