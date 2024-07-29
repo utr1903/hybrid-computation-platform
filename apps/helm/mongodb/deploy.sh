@@ -28,7 +28,7 @@ helm upgrade ${mongodbName} \
   --set replicaCount=2 \
   --set auth.enabled=true \
   --set auth.rootUser=${mongodbRootUserName} \
-  --set auth.password=${mongodbRootPassword} \
+  --set auth.rootPassword=${mongodbRootPassword} \
   --set auth.usernames[0]=${mongodbUsername1} \
   --set auth.passwords[0]=${mongodbUserPassword1} \
   --set auth.databases[0]=${mongodbUserDatabase1} \
