@@ -41,12 +41,20 @@ fi
 
 ### Set variables
 
-# redis
-redisName="redis"
-redisNamespace="platform"
-redisAdressMaster="${redisName}-master.${redisNamespace}.svc.cluster.local"
-redisAdressSlaves="${redisName}-replicas.${redisNamespace}.svc.cluster.local"
-redisPort="6379"
+# database
+databaseName="mongodb"
+databaseNamespace="platform"
+databaseAddressSlave="${databaseName}-headless.${databaseNamespace}.svc.cluster.local"
+databaseUsername="customerorg1"
+databasePassword="customerorg1"
+
+# cache
+cacheName="redis"
+cacheNamespace="platform"
+cacheAddressMaster="${cacheName}-master.${cacheNamespace}.svc.cluster.local"
+cacheAddressSlave="${cacheName}-replicas.${cacheNamespace}.svc.cluster.local"
+cachePort=6379
+cachePassword="megasecret"
 
 # jobmanager
 jobmanagerName="jobmanager"
@@ -69,7 +77,11 @@ helm upgrade ${jobmanagerName} \
   --set imagePullPolicy="Always" \
   --set name=${jobmanagerName} \
   --set replicas=${jobmanagerReplicas} \
-  --set redis.addresses.master=${redisAdressMaster} \
-  --set redis.addresses.slaves=${redisAdressSlaves} \
-  --set redis.port=${redisPort} \
+  --set database.addresses.slave=${databaseAddressSlave} \
+  --set database.username="root" \
+  --set database.password="megasecret" \
+  --set cache.addresses.master=${cacheAddressMaster} \
+  --set cache.addresses.slave=${cacheAddressSlave} \
+  --set cache.port=${cachePort} \
+  --set cache.password=${cachePassword} \
   "./chart"

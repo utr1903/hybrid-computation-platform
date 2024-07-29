@@ -6,7 +6,9 @@ from dataclasses import dataclass
 class JobRequestDto:
     customerOrganizationId: str
     customerUserId: str
+    jobId: str
     jobName: str
+    jobVersion: float
     jobRequestTimestamp: float
 
     def toDict(
@@ -15,7 +17,9 @@ class JobRequestDto:
         return {
             "customerOrganizationId": self.customerOrganizationId,
             "customerUserId": self.customerUserId,
+            "jobId": self.jobId,
             "jobName": self.jobName,
+            "jobVersion": self.jobVersion,
             "jobRequestTimestamp": self.jobRequestTimestamp,
         }
 
@@ -27,6 +31,7 @@ class JobCreationDto:
     jobId: str
     jobName: str
     jobStatus: str
+    jobVersion: float
     jobRequestTimestamp: float
     jobCreationTimestamp: float
 
@@ -39,6 +44,7 @@ class JobCreationDto:
             "jobId": self.jobId,
             "jobName": self.jobName,
             "jobStatus": self.jobStatus,
+            "jobVersion": self.jobVersion,
             "jobRequestTimestamp": self.jobRequestTimestamp,
             "jobCreationTimestamp": self.jobCreationTimestamp,
         }
