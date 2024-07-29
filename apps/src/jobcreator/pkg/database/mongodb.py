@@ -23,144 +23,82 @@ class DatabaseMongoDb(Database):
             "mongodb://%s:%s@%s"
             % (quote_plus(username), quote_plus(password), masterAddress)
         )
-        # self.master.admin.command('ping') 
+        # self.master.admin.command('ping')
 
         self.slave = MongoClient(
             "mongodb://%s:%s@%s"
             % (quote_plus(username), quote_plus(password), slaveAddress)
         )
 
-    def insert(
-        self,
-        request: dict,
-    ):
-        # Get all jobs collection
-        allJobsCollection, allJobsCollectionAlreadyExists = self.getAllJobsCollection(
-            request["customerOrganizationId"],
-        )
-
-        # Update all jobs collection
-        self.updateAllJobsCollection(
-            allJobsCollection,
-            allJobsCollectionAlreadyExists,
-            request,
-        )
-
-    def getAllJobsCollection(
-        self,
-        databaseName: str,
-    ) -> Tuple[Collection, bool]:
-        try:
-            db = self.master[databaseName]
-            collectionAlreadyExists: bool
-
-            # Create "jobs" collection if it doesn't exist
-            if "jobs" not in db.list_collection_names():
-                collectionAlreadyExists = False
-                logger.info("The collection [jobs] does not exist. Creating...")
-
-                # Create collection
-                jobsCollection = db.create_collection("jobs")
-
-                # Create unique index on job ID
-                jobsCollection.create_index(
-                    [
-                        ("jobId", ASCENDING),
-                    ],
-                    unique=True,
-                )
-                logger.info("Creating collection [jobs] succeeded.")
-
-            # Otherwise, return the collection
-            else:
-                collectionAlreadyExists = True
-                jobsCollection = db["jobs"]
-
-            return jobsCollection, collectionAlreadyExists
-        except Exception as e:
-            logger.error("Creating collection [jobs] failed.", e)
-
-    def updateAllJobsCollection(
-        self,
-        collection: Collection,
-        collectionExists: bool,
-        request: dict,
-    ):
-        try:
-            # Create the payload
-            payload = {
-                "customerUserId": request["customerUserId"],
-                "jobId": request["jobId"],
-                "jobName": request["jobName"],
-                "jobStatus": request["jobStatus"],
-                "jobVersion": request.get("jobVersion", 1),
-                "jobRequestTimestamp": request["jobRequestTimestamp"],
-                "jobCreationTimestamp": request["jobCreationTimestamp"],
-            }
-
-            # Insert the job immediately if the collection doesn't exist
-            if not collectionExists:
-                logger.info("Inserting job...")
-                collection.insert_one(payload)
-                logger.info("Inserting job succeeded.")
-                return
-
-            # Get the job ID
-            jobId = payload["jobId"]
-
-            # Otherwise, check if the job already exists
-            job = collection.find_one(
-                {"jobId": jobId},
-            )
-
-            # If the job doesn't exist, insert it
-            if not job:
-                logger.info("Job does not exist. Inserting...")
-                collection.insert_one(payload)
-                logger.info("Inserting job succeeded.")
-                return
-
-            # Otherwise, update the job with the incremented job version
-            else:
-                jobVersion = job["jobVersion"]
-                logger.info(
-                    f"Job already exists with version [{jobVersion}]. Updating..."
-                )
-                job["jobVersion"] = jobVersion + 1
-
-                collection.update_one(
-                    {"jobId": jobId},
-                    {"$set": job},
-                    upsert=True,
-                )
-                logger.info("Updating job succeeded.")
-
-        except Exception as e:
-            logger.error("Inserting job succeeded.", e)
-
-    def getIndividualJobCollection(
+    def doesCollectionExist(
         self,
         databaseName: str,
         collectionName: str,
-    ) -> Tuple[Collection, bool]:
-        try:
-            db = self.master[databaseName]
+    ) -> bool:
+        db = self.slave[databaseName]
+        return collectionName in db.list_collection_names()
 
-            # Create individual "job" collection if it doesn't exist
-            if collectionName not in db.list_collection_names():
-                collectionAlreadyExists = False
+    def createCollection(
+        self,
+        databaseName: str,
+        collectionName: str,
+    ) -> None:
+        db = self.master[databaseName]
+        db.create_collection(collectionName)
 
-                # Create collection
-                jobCollection = db.create_collection(collectionName)
+    def createIndexOnCollection(
+        self,
+        databaseName: str,
+        collectionName: str,
+        indexKey: str,
+        isUnique: bool,
+    ) -> None:
+        collection = self.master[databaseName][collectionName]
+        collection.create_index(
+            [
+                (indexKey),
+            ],
+            unique=isUnique,
+        )
 
-                # Create index
-                jobCollection.create_index([("jobId", ASCENDING)], unique=True)
+    def insert(
+        self,
+        databaseName: str,
+        collectionName: str,
+        request: dict,
+    ) -> None:
+        self.master[databaseName][collectionName].insert_one(request)
 
-            # Otherwise, return the collection
-            else:
-                collectionAlreadyExists = True
-                jobCollection = db[collectionName]
+    def update(
+        self,
+        databaseName: str,
+        collectionName: str,
+        filter: dict,
+        update: dict,
+    ) -> None:
+        self.master[databaseName][collectionName].update_one(
+            filter,
+            update,
+        )
 
-            return jobCollection, collectionAlreadyExists
-        except Exception as e:
-            logger.error(e)
+    def findOne(
+        self,
+        databaseName: str,
+        collectionName: str,
+        query: dict,
+    ) -> dict | None:
+        return self.slave[databaseName][collectionName].find_one(
+            query,
+        )
+
+    def findMany(
+        self,
+        databaseName: str,
+        collectionName: str,
+        query: dict,
+        limit: int,
+    ) -> dict | None:
+        return self.slave[databaseName][collectionName].find(
+            query,
+            limit=limit,
+        )

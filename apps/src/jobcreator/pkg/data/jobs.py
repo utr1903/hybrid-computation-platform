@@ -6,6 +6,7 @@ from dataclasses import dataclass
 class JobRequestDto:
     customerOrganizationId: str
     customerUserId: str
+    jobId: str
     jobName: str
     jobVersion: float
     jobRequestTimestamp: float
@@ -16,6 +17,7 @@ class JobRequestDto:
         return {
             "customerOrganizationId": self.customerOrganizationId,
             "customerUserId": self.customerUserId,
+            "jobId": self.jobId,
             "jobName": self.jobName,
             "jobVersion": self.jobVersion,
             "jobRequestTimestamp": self.jobRequestTimestamp,

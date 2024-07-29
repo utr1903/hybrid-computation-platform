@@ -30,7 +30,7 @@ class JobCreator:
 
     def processJobRequest(
         self,
-        message,
+        message: dict,
     ) -> None:
 
         try:
@@ -42,22 +42,58 @@ class JobCreator:
             # Create job creation DTO
             jobCreationDto = self.createJobCreationDto(jobRequestDto)
 
-            # Create job
-            self.createJob(jobCreationDto)
+            # Check if jobs collection exists
+            if not self.doesAllJobsCollectionExist(jobCreationDto):
+
+                # Create jobs collection
+                self.createAllJobsCollection(jobCreationDto)
+
+                # Add job to all jobs collection
+                job = self.addJobToAllJobsCollection(jobCreationDto)
+
+                # Set jobs in cache
+                self.setAllJobsInCache([job])
+
+            # If jobs collection exist, check if the individual job already exists
+            else:
+
+                # Get the job from all jobs collection if it exists
+                job = self.getJobInAllJobsCollection(jobCreationDto)
+
+                # If job doesn't exist, add it
+                if job is None:
+                    job = self.addJobToAllJobsCollection(
+                        jobCreationDto,
+                    )
+                # Otherwise, update the job and increment the version
+                else:
+                    self.updateJobInAllJobsCollection(
+                        jobCreationDto,
+                    )
+
+                # Get all jobs
+                jobs = self.getAllJobs(jobCreationDto.customerOrganizationId)
+
+                # Set jobs in cache
+                self.setAllJobsInCache(jobs)
+
         except Exception as e:
             logger.error(e)
 
     def extractJobRequestDto(
         self,
-        message,
+        message: dict,
     ) -> JobRequestDto:
 
         return JobRequestDto(
-            customerOrganizationId=message["customerOrganizationId"],
-            customerUserId=message["customerUserId"],
-            jobName=message["jobName"],
-            jobVersion=message["jobVersion"],
-            jobRequestTimestamp=message["jobRequestTimestamp"],
+            customerOrganizationId=message.get("customerOrganizationId"),
+            customerUserId=message.get("customerUserId"),
+            jobName=message.get("jobName"),
+            jobId=message.get(
+                "jobId", str(uuid.uuid4())
+            ),  # Generate new if not provided
+            jobVersion=message.get("jobVersion"),
+            jobRequestTimestamp=message.get("jobRequestTimestamp"),
         )
 
     def createJobCreationDto(
@@ -67,7 +103,7 @@ class JobCreator:
         return JobCreationDto(
             customerOrganizationId=jobRequestDto.customerOrganizationId,
             customerUserId=jobRequestDto.customerUserId,
-            jobId=str(uuid.uuid4()),
+            jobId=jobRequestDto.jobId,
             jobName=jobRequestDto.jobName,
             jobVersion=jobRequestDto.jobVersion,
             jobStatus="CREATED",
@@ -75,28 +111,100 @@ class JobCreator:
             jobCreationTimestamp=datetime.now().timestamp(),
         )
 
-    def createJob(
+    def doesAllJobsCollectionExist(
         self,
         jobCreationDto: JobCreationDto,
-    ) -> None:
+    ):
+        return self.database.doesCollectionExist(
+            databaseName=jobCreationDto.customerOrganizationId,
+            collectionName="jobs",
+        )
 
-        try:
-            logger.info("Inserting job in database...")
-            self.database.insert(
-                request=jobCreationDto.toDict(),
-            )
-            logger.info("Inserting job in database succeeded.")
-        except Exception as e:
-            logger.info(f"Inserting job in database failed: {e}")
-            return
+    def createAllJobsCollection(
+        self,
+        jobCreationDto: JobCreationDto,
+    ):
+        databaseName = jobCreationDto.customerOrganizationId
+        collectionName = "jobs"
 
-        try:
-            logger.info("Setting job in cache...")
-            self.cache.set(
-                key="jobs",
-                value=json.dumps(jobCreationDto.toDict()),
-            )
+        logger.info(f"Collection [{databaseName}] does not exist. Creating...")
+        self.database.createCollection(databaseName, collectionName)
+        self.database.createIndexOnCollection(
+            databaseName=databaseName,
+            collectionName=collectionName,
+            indexKey="jobId",
+            isUnique=True,
+        )
+        logger.info(f"Creating collection [{databaseName}] succeeded.")
 
-            logger.info("Setting job in cache succeeded.")
-        except Exception as e:
-            logger.info(f"Setting job in cache failed: {e}")
+    def addJobToAllJobsCollection(
+        self,
+        jobCreationDto: JobCreationDto,
+    ) -> dict:
+
+        logger.info(f"Inserting job [{jobCreationDto.jobId}]...")
+        job = self.database.insert(
+            databaseName=jobCreationDto.customerOrganizationId,
+            collectionName="jobs",
+            request=jobCreationDto.toDict(),
+        )
+        logger.info(f"Inserting job [{jobCreationDto.jobId}] succeeded.")
+
+        return job
+
+    def getJobInAllJobsCollection(
+        self,
+        jobCreationDto: JobCreationDto,
+    ) -> dict | None:
+
+        logger.info(f"Getting job [{jobCreationDto.jobId}]...")
+        job = self.database.findOne(
+            databaseName=jobCreationDto.customerOrganizationId,
+            collectionName="jobs",
+            query={"jobId": jobCreationDto.jobId},
+        )
+
+        if job is None:
+            logger.info(f"Job [{jobCreationDto.jobId}] does not exist.")
+        else:
+            logger.info(f"Getting [{jobCreationDto.jobId}] succeeded.")
+
+    def updateJobInAllJobsCollection(
+        self,
+        job: dict,
+    ):
+        jobId = job.get("jobId")
+        logger.info(f"Updating job [{jobId}]...")
+        job["jobVersion"] += 1
+
+        self.database.update(
+            filter={"jobId": jobId},
+            update={"$set": job},
+        )
+        logger.info(f"Updating job [{jobId}] succeeded.")
+
+    def getAllJobs(
+        self,
+        customerOrganizationId: str,
+    ):
+        logger.info(f"Getting all jobs...")
+        jobs = self.database.findMany(
+            databaseName=customerOrganizationId,
+            collectionName="jobs",
+            query={},
+            limit=100,
+        )
+        logger.info(f"Getting all jobs succeeded.")
+
+        return jobs
+
+    def setAllJobsInCache(
+        self,
+        jobs: list[dict],
+    ):
+        logger.info(f"Setting jobs in cache.")
+        self.cache.set(
+            key="jobs",
+            value=json.dumps(jobs),
+        )
+        logger.info(f"Setting jobs in cache succeeded.")
