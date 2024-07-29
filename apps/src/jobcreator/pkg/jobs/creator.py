@@ -226,7 +226,6 @@ class JobCreator:
         self,
         jobs: list[dict],
     ):
-        print(jobs)
         logger.info(f"Setting jobs in cache.")
         self.cache.set(
             key="jobs",
