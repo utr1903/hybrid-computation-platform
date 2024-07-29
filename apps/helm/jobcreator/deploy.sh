@@ -62,8 +62,8 @@ cachePassword="megasecret"
 brokerName="kafka"
 brokerNamespace="platform"
 brokerAddress="${brokerName}.${brokerNamespace}.svc.cluster.local:9092"
-brokerTopic="jobs"
-brokerConsumerGroup="jobrequest"
+brokerTopic="jobrequest"
+brokerConsumerGroup="jobmanager"
 
 # jobmanager
 jobmanagerName="jobmanager"
