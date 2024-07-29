@@ -37,6 +37,13 @@ class Server:
             rule="/jobs", endpoint="jobs", view_func=self.listJobs, methods=["GET"]
         )
 
+        self.app.add_url_rule(
+            rule="/jobs/<string:jobId>",
+            endpoint="job",
+            view_func=self.getJob,
+            methods=["GET"],
+        )
+
     def livez(
         self,
     ):
@@ -81,6 +88,41 @@ class Server:
             )
             return resp
 
+    def getJob(
+        self,
+        jobId: str,
+    ):
+        try:
+
+            # Get job from cache
+            job = self.getJobFromCache(jobId)
+
+            if job is None:
+                logger.info(f"Job [{jobId}] not found in cache.")
+
+                # Get job from database
+                job = self.getJobFromDatabase(jobId)
+
+                # Set job in cache
+                self.cache.set(jobId, job)
+
+            logger.info(json.loads(job))
+
+            resp = Response(
+                response=job,
+                status=200,
+                mimetype="application/json",
+            )
+            return resp
+        except Exception as e:
+            logger.error(e)
+            resp = Response(
+                response=e,
+                status=500,
+                mimetype="application/json",
+            )
+            return resp
+
     def run(
         self,
     ):
@@ -97,10 +139,41 @@ class Server:
         self,
     ) -> str | None:
         jobs = self.database.findMany(
-            databaseName="custoemrorg1",
+            databaseName="customerorg1",
             collectionName="jobs",
             query={},
             limit=10,
         )
 
         return json.dumps(jobs)
+
+    def getJobFromCache(
+        self,
+        jobId: str,
+    ) -> bytes | None:
+        logger.info(f"Getting job [{jobId}] from cache...")
+        return self.cache.get(jobId)
+
+    def getJobFromDatabase(
+        self,
+        jobId: str,
+    ) -> str | None:
+        result = self.database.findOne(
+            databaseName="customerorg1",
+            collectionName=jobId,
+            query={
+                "jobId": jobId,
+            },
+        )
+
+        return json.dumps(
+            {
+                "customerUserId": result.get("customerUserId"),
+                "jobId": result.get("jobId"),
+                "jobName": result.get("jobName"),
+                "jobStatus": result.get("jobStatus"),
+                "jobVersion": result.get("jobVersion"),
+                "jobRequestTimestamp": result.get("jobRequestTimestamp"),
+                "jobCreationTimestamp": result.get("jobCreationTimestamp"),
+            }
+        )
