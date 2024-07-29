@@ -56,27 +56,27 @@ cacheAddressSlave="${cacheName}-replicas.${cacheNamespace}.svc.cluster.local"
 cachePort=6379
 cachePassword="megasecret"
 
-# jobmanager
-jobmanagerName="jobmanager"
-jobmanagerNamespace="jobs"
-jobmanagerImageName="${containerRegistry}/${containerRegistryUsername}/${project}-${jobmanagerName}:latest"
-jobmanagerReplicas=1
+# jobvisualizer
+jobvisualizerName="jobvisualizer"
+jobvisualizerNamespace="jobs"
+jobvisualizerImageName="${containerRegistry}/${containerRegistryUsername}/${project}-${jobvisualizerName}:latest"
+jobvisualizerReplicas=1
 
 ###################
 ### Deploy Helm ###
 ###################
 
-# jobmanager
-helm upgrade ${jobmanagerName} \
+# jobvisualizer
+helm upgrade ${jobvisualizerName} \
   --install \
   --wait \
   --debug \
   --create-namespace \
-  --namespace=${jobmanagerNamespace} \
-  --set imageName=${jobmanagerImageName} \
+  --namespace=${jobvisualizerNamespace} \
+  --set imageName=${jobvisualizerImageName} \
   --set imagePullPolicy="Always" \
-  --set name=${jobmanagerName} \
-  --set replicas=${jobmanagerReplicas} \
+  --set name=${jobvisualizerName} \
+  --set replicas=${jobvisualizerReplicas} \
   --set database.addresses.slave=${databaseAddressSlave} \
   --set database.username="root" \
   --set database.password="megasecret" \
