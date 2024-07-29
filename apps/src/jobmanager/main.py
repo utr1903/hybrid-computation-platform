@@ -6,7 +6,7 @@ from pkg.server.server import Server
 from pkg.broker.kafkaconsumer import BrokerConsumerKafka
 from pkg.database.mongodb import DatabaseMongoDb
 from pkg.cache.redis import CacheRedis
-from pkg.jobs.creator import JobCreator
+from pkg.jobs.manager import JobManager
 
 
 def setLoggingLevel(
@@ -59,7 +59,7 @@ def processJobRequests(
     )
 
     # Run the job creator
-    JobCreator(
+    JobManager(
         database=mongodb,
         cache=redis,
         brokerConsumer=kafkaConsumer,

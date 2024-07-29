@@ -1,7 +1,7 @@
 ### Variables
 
 # Name
-name: jobcreator
+name: jobmanager
 
 # Logs
 logs:
@@ -59,4 +59,4 @@ broker:
   # Topic
   topic: "jobs"
   # Consumer group
-  consumerGroup: "jobcreator"
+  consumerGroup: "jobrequest"

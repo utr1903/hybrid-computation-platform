@@ -56,12 +56,12 @@ fi
 
 # Services
 gateway="gateway"
-jobcreator="jobcreator"
+jobmanager="jobmanager"
 jobvisualizer="jobvisualizer"
 
 # Images
 gatewayImageName="${containerRegistry}/${containerRegistryUsername}/${project}-${gateway}:latest"
-jobcreatorImageName="${containerRegistry}/${containerRegistryUsername}/${project}-${jobcreator}:latest"
+jobmanagerImageName="${containerRegistry}/${containerRegistryUsername}/${project}-${jobmanager}:latest"
 jobvisualizerImageName="${containerRegistry}/${containerRegistryUsername}/${project}-${jobvisualizer}:latest"
 
 ####################
@@ -76,13 +76,13 @@ docker build \
   "./${gateway}"
 docker push "${gatewayImageName}"
 
-# jobcreator
+# jobmanager
 docker build \
   --platform "linux/${platform}" \
-  --tag "${jobcreatorImageName}" \
-  --build-arg="APP_NAME=${jobcreator}" \
-  "./${jobcreator}"
-docker push "${jobcreatorImageName}"
+  --tag "${jobmanagerImageName}" \
+  --build-arg="APP_NAME=${jobmanager}" \
+  "./${jobmanager}"
+docker push "${jobmanagerImageName}"
 
 # jobvisualizer
 docker build \

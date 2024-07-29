@@ -63,29 +63,29 @@ brokerName="kafka"
 brokerNamespace="platform"
 brokerAddress="${brokerName}.${brokerNamespace}.svc.cluster.local:9092"
 brokerTopic="jobs"
-brokerConsumerGroup="jobcreator"
+brokerConsumerGroup="jobrequest"
 
-# jobcreator
-jobcreatorName="jobcreator"
-jobcreatorNamespace="jobs"
-jobcreatorImageName="${containerRegistry}/${containerRegistryUsername}/${project}-${jobcreatorName}:latest"
-jobcreatorReplicas=1
+# jobmanager
+jobmanagerName="jobmanager"
+jobmanagerNamespace="jobs"
+jobmanagerImageName="${containerRegistry}/${containerRegistryUsername}/${project}-${jobmanagerName}:latest"
+jobmanagerReplicas=1
 
 ###################
 ### Deploy Helm ###
 ###################
 
-# jobcreator
-helm upgrade ${jobcreatorName} \
+# jobmanager
+helm upgrade ${jobmanagerName} \
   --install \
   --wait \
   --debug \
   --create-namespace \
-  --namespace=${jobcreatorNamespace} \
-  --set imageName=${jobcreatorImageName} \
+  --namespace=${jobmanagerNamespace} \
+  --set imageName=${jobmanagerImageName} \
   --set imagePullPolicy="Always" \
-  --set name=${jobcreatorName} \
-  --set replicas=${jobcreatorReplicas} \
+  --set name=${jobmanagerName} \
+  --set replicas=${jobmanagerReplicas} \
   --set database.addresses.master=${databaseAddressMaster} \
   --set database.addresses.slave=${databaseAddressSlave} \
   --set database.username="root" \
