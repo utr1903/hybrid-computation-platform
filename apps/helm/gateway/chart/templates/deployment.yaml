@@ -25,10 +25,10 @@ spec:
                   fieldPath: metadata.name
             - name: LOGGING_LEVEL
               value: "{{ .Values.logs.level }}"
-            - name: KAFKA_BOOTSTRAP_SERVERS
-              value: {{ .Values.kafka.address }}
-            - name: KAFKA_TOPIC
-              value: {{ .Values.kafka.topic }}
+            - name: BROKER_ADDRESS
+              value: {{ .Values.broker.address }}
+            - name: BROKER_TOPIC
+              value: {{ .Values.broker.topic }}
           ports:
             - containerPort: 8080
           resources:

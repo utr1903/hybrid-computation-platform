@@ -2,7 +2,7 @@ import logging
 
 from pkg.config.config import Config
 from pkg.server.server import Server
-from pkg.kafka.producer import Producer
+from pkg.broker.kafkaproducer import BrokerProducerKafka
 
 
 def setLoggingLevel(
@@ -29,15 +29,15 @@ def main():
     # Set logging level
     setLoggingLevel(level=cfg.LOGGING_LEVEL)
 
-    # Create producer
-    producer = Producer(
-        bootstrap_servers=cfg.KAFKA_BOOTSTRAP_SERVERS,
-        topic=cfg.KAFKA_TOPIC,
+    # Create Kafka producer
+    kafka = BrokerProducerKafka(
+        bootstrap_servers=cfg.BROKER_ADDRESS,
+        topic=cfg.BROKER_TOPIC,
     )
 
     # Create & run HTTP server
     srv = Server(
-        producer=producer,
+        producer=kafka,
     )
     srv.run()
 

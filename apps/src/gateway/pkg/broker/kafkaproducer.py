@@ -1,12 +1,12 @@
-import os
 import logging
-
 from kafka import KafkaProducer
+
+from pkg.broker.producer import BrokerProducer
 
 logger = logging.getLogger(__name__)
 
 
-class Producer:
+class BrokerProducerKafka(BrokerProducer):
 
     def __init__(
         self,
