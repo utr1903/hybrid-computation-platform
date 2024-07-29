@@ -33,7 +33,7 @@ database:
     # Master
     master: "mongodb-arbiter-headless.platform.svc.cluster.local"
     # Slave
-    master: "mongodb-headless.platform.svc.cluster.local"
+    slave: "mongodb-headless.platform.svc.cluster.local"
   # Username
   username: "customerorg1"
   # Password
