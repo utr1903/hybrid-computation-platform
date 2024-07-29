@@ -4,7 +4,7 @@ import json
 from waitress import serve
 from flask import Flask, request, Response
 
-from pkg.redis.client import RedisClient
+from pkg.cache.cache import Cache
 
 
 logger = logging.getLogger(__name__)
@@ -14,7 +14,7 @@ class Server:
 
     def __init__(
         self,
-        cache: RedisClient,
+        cache: Cache,
     ):
         self.app = Flask(__name__)
         self.app.debug = True
@@ -31,7 +31,7 @@ class Server:
         )
 
         self.app.add_url_rule(
-            rule="/jobs", endpoint="jobs", view_func=self.list_jobs, methods=["GET"]
+            rule="/jobs", endpoint="jobs", view_func=self.listJobs, methods=["GET"]
         )
 
     def livez(
@@ -45,27 +45,25 @@ class Server:
         )
         return resp
 
-    def list_jobs(
+    def listJobs(
         self,
     ):
         try:
             logger.info("Listing jobs...")
-            jobs = json.loads(self.cache.get("jobs"))
+            jobs = self.cache.get("jobs")
             if jobs is None:
-                resp = Response(
-                    response=json.dumps([]),
-                    status=200,
-                    mimetype="application/json",
-                )
+                jobs = []
 
-            logger.info(jobs)
+            logger.info(json.loads(jobs))
+
             resp = Response(
-                response=json.dumps(jobs),
+                response=jobs,
                 status=200,
                 mimetype="application/json",
             )
             return resp
         except Exception as e:
+            logger.error(e)
             resp = Response(
                 response=e,
                 status=500,

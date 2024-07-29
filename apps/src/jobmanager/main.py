@@ -2,7 +2,7 @@ import logging
 
 from pkg.config.config import Config
 from pkg.server.server import Server
-from pkg.redis.client import RedisClient
+from pkg.cache.redis import CacheRedis
 
 
 def setLoggingLevel(
@@ -29,15 +29,17 @@ def main():
     # Set logging level
     setLoggingLevel(level=cfg.LOGGING_LEVEL)
 
-    cache = RedisClient(
-        redis_master_server=cfg.REDIS_MASTER_SERVER,
-        redis_slave_servers=cfg.REDIS_SLAVES_SERVERS,
-        redis_port=cfg.REDIS_PORT,
-        redis_password=cfg.REDIS_PASSWORD,
+    # Instantiate Redis cache
+    redis = CacheRedis(
+        masterAddress=cfg.REDIS_MASTER_SERVER,
+        slaveAddress=cfg.REDIS_SLAVES_SERVERS,
+        port=int(cfg.REDIS_PORT),
+        password=cfg.REDIS_PASSWORD,
     )
+
     # Create & run HTTP server
     srv = Server(
-        cache=cache,
+        cache=redis,
     )
     srv.run()
 
