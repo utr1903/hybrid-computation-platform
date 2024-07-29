@@ -42,43 +42,11 @@ class JobCreator:
             # Create job creation DTO
             jobCreationDto = self.createJobCreationDto(jobRequestDto)
 
-            # Check if jobs collection exists
-            if not self.doesAllJobsCollectionExist(jobCreationDto):
+            # Process all jobs collection
+            self.processAllJobsCollection(jobCreationDto)
 
-                # Create jobs collection
-                self.createAllJobsCollection(jobCreationDto)
-
-                # Add job to all jobs collection
-                self.addJobToAllJobsCollection(jobCreationDto)
-
-                # Get the job from all jobs collection if it exists
-                job = self.getJobInAllJobsCollection(jobCreationDto)
-
-                # Set jobs in cache
-                self.setAllJobsInCache([job])
-
-            # If jobs collection exist, check if the individual job already exists
-            else:
-
-                # Get the job from all jobs collection if it exists
-                job = self.getJobInAllJobsCollection(jobCreationDto)
-
-                # If job doesn't exist, add it
-                if job is None:
-                    self.addJobToAllJobsCollection(
-                        jobCreationDto,
-                    )
-                # Otherwise, update the job and increment the version
-                else:
-                    self.updateJobInAllJobsCollection(
-                        jobCreationDto,
-                    )
-
-                # Get all jobs
-                jobs = self.getAllJobs(jobCreationDto.customerOrganizationId)
-
-                # Set jobs in cache
-                self.setAllJobsInCache(jobs)
+            # Process individual job collection
+            self.processIndividualJobCollection(jobCreationDto)
 
         except Exception as e:
             logger.error(e)
@@ -114,6 +82,49 @@ class JobCreator:
             jobCreationTimestamp=datetime.now().timestamp(),
         )
 
+    def processAllJobsCollection(
+        self,
+        jobCreationDto: JobCreationDto,
+    ) -> None:
+
+        # Check if jobs collection exists
+        if not self.doesAllJobsCollectionExist(jobCreationDto):
+
+            # Create jobs collection
+            self.createAllJobsCollection(jobCreationDto)
+
+            # Add job to all jobs collection
+            self.addJobToAllJobsCollection(jobCreationDto)
+
+            # Get the job from all jobs collection if it exists
+            job = self.getJobInAllJobsCollection(jobCreationDto)
+
+            # Set jobs in cache
+            self.setAllJobsInCache([job])
+
+        # If jobs collection exist, check if the individual job already exists
+        else:
+
+            # Get the job from all jobs collection if it exists
+            job = self.getJobInAllJobsCollection(jobCreationDto)
+
+            # If job doesn't exist, add it
+            if job is None:
+                self.addJobToAllJobsCollection(
+                    jobCreationDto,
+                )
+            # Otherwise, update the job and increment the version
+            else:
+                self.updateJobInAllJobsCollection(
+                    jobCreationDto,
+                )
+
+            # Get all jobs
+            jobs = self.getAllJobs(jobCreationDto.customerOrganizationId)
+
+            # Set jobs in cache
+            self.setAllJobsInCache(jobs)
+
     def doesAllJobsCollectionExist(
         self,
         jobCreationDto: JobCreationDto,
@@ -130,7 +141,7 @@ class JobCreator:
         databaseName = jobCreationDto.customerOrganizationId
         collectionName = "jobs"
 
-        logger.info(f"Collection [{databaseName}] does not exist. Creating...")
+        logger.info(f"Collection [jobs] does not exist. Creating...")
         self.database.createCollection(databaseName, collectionName)
         self.database.createIndexOnCollection(
             databaseName=databaseName,
@@ -138,7 +149,7 @@ class JobCreator:
             indexKey="jobId",
             isUnique=True,
         )
-        logger.info(f"Creating collection [{databaseName}] succeeded.")
+        logger.info(f"Creating collection [jobs] succeeded.")
 
     def addJobToAllJobsCollection(
         self,
@@ -232,3 +243,70 @@ class JobCreator:
             value=json.dumps(jobs),
         )
         logger.info(f"Setting jobs in cache succeeded.")
+
+    def processIndividualJobCollection(
+        self,
+        jobCreationDto: JobCreationDto,
+    ):
+        # Check if individual job collection exists
+        if not self.doesIndividualJobCollectionExist(jobCreationDto):
+
+            # Create individual job collection
+            self.createIndividualJobCollection(jobCreationDto)
+
+            # Add job to individual job collection
+            self.addJobToIndividualJobCollection(jobCreationDto)
+
+    def doesIndividualJobCollectionExist(
+        self,
+        jobCreationDto: JobCreationDto,
+    ):
+        return self.database.doesCollectionExist(
+            databaseName=jobCreationDto.customerOrganizationId,
+            collectionName=jobCreationDto.jobId,
+        )
+
+    def createIndividualJobCollection(
+        self,
+        jobCreationDto: JobCreationDto,
+    ):
+        databaseName = jobCreationDto.customerOrganizationId
+        collectionName = jobCreationDto.jobId
+
+        logger.info(f"Collection [{collectionName}] does not exist. Creating...")
+        self.database.createCollection(databaseName, collectionName)
+        self.database.createIndexOnCollection(
+            databaseName=databaseName,
+            collectionName=collectionName,
+            indexKey="jobVersion",
+            isUnique=True,
+        )
+        logger.info(f"Creating collection [{collectionName}] succeeded.")
+
+    def addJobToIndividualJobCollection(
+        self,
+        jobCreationDto: JobCreationDto,
+    ) -> None:
+
+        logger.info(
+            f"Inserting job [{jobCreationDto.jobId}] with version [{jobCreationDto.jobVersion}]..."
+        )
+        self.database.insert(
+            databaseName=jobCreationDto.customerOrganizationId,
+            collectionName=jobCreationDto.jobId,
+            request=jobCreationDto.toDict(),
+        )
+        logger.info(
+            f"Inserting job [{jobCreationDto.jobId}] with version [{jobCreationDto.jobVersion}] succeeded."
+        )
+
+    def setIndividualJobInCache(
+        self,
+        job: dict,
+    ):
+        logger.info(f"Setting job [{job.get("jobId")}] in cache.")
+        self.cache.set(
+            key=job.get("jobId"),
+            value=json.dumps(job),
+        )
+        logger.info(f"Setting job [{job.get("jobId")}] in cache succeeded.")
