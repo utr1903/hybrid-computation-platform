@@ -10,6 +10,7 @@ class BrokerConsumer(ABC):
     @abstractmethod
     def consume(
         self,
+        consumeFunction,
     ):
         pass
 
@@ -29,6 +30,9 @@ class BrokerConsumer(ABC):
 
         if "jobName" not in messageParsed:
             missingFields.append("jobName")
+
+        if "jobVersion" not in messageParsed:
+            missingFields.append("jobVersion")
 
         if "jobRequestTimestamp" not in messageParsed:
             missingFields.append("jobRequestTimestamp")

@@ -41,12 +41,14 @@ fi
 
 ### Set variables
 
-# broker
-brokerName="kafka"
-brokerNamespace="platform"
-brokerAddress="${brokerName}.${brokerNamespace}.svc.cluster.local:9092"
-brokerTopic="jobs"
-brokerConsumerGroup="jobcreator"
+# database
+databaseName="mongodb"
+databaseNamespace="platform"
+# databaseAddressMaster="${databaseName}-arbiter-headless.${databaseNamespace}.svc.cluster.local"
+databaseAddressMaster="${databaseName}-headless.${databaseNamespace}.svc.cluster.local"
+databaseAddressSlave="${databaseName}-headless.${databaseNamespace}.svc.cluster.local"
+databaseUsername="customerorg1"
+databasePassword="customerorg1"
 
 # cache
 cacheName="redis"
@@ -55,6 +57,13 @@ cacheAddressMaster="${cacheName}-master.${cacheNamespace}.svc.cluster.local"
 cacheAddressSlave="${cacheName}-replicas.${cacheNamespace}.svc.cluster.local"
 cachePort=6379
 cachePassword="megasecret"
+
+# broker
+brokerName="kafka"
+brokerNamespace="platform"
+brokerAddress="${brokerName}.${brokerNamespace}.svc.cluster.local:9092"
+brokerTopic="jobs"
+brokerConsumerGroup="jobcreator"
 
 # jobcreator
 jobcreatorName="jobcreator"
@@ -77,11 +86,15 @@ helm upgrade ${jobcreatorName} \
   --set imagePullPolicy="Always" \
   --set name=${jobcreatorName} \
   --set replicas=${jobcreatorReplicas} \
-  --set broker.address=${brokerAddress} \
-  --set broker.topic=${brokerTopic} \
-  --set broker.consumerGroup=${brokerConsumerGroup} \
+  --set database.addresses.master=${databaseAddressMaster} \
+  --set database.addresses.slave=${databaseAddressSlave} \
+  --set database.username="root" \
+  --set database.password="megasecret" \
   --set cache.addresses.master=${cacheAddressMaster} \
   --set cache.addresses.slave=${cacheAddressSlave} \
   --set cache.port=${cachePort} \
   --set cache.password=${cachePassword} \
+  --set broker.address=${brokerAddress} \
+  --set broker.topic=${brokerTopic} \
+  --set broker.consumerGroup=${brokerConsumerGroup} \
   "./chart"

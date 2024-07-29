@@ -3,8 +3,6 @@ import json
 from kafka import KafkaConsumer
 
 from pkg.broker.consumer import BrokerConsumer
-from pkg.cache.cache import Cache
-from pkg.data.jobs import JobRequestDto, JobCreationDto
 
 logger = logging.getLogger(__name__)
 
@@ -39,8 +37,8 @@ class BrokerConsumerKafka(BrokerConsumer):
 
                 # Consume message with given external function
                 consumeFunction(messageParsed)
-            except:
-                pass
+            except Exception as e:
+                logger.error(e)
 
     def parseMessage(
         self,

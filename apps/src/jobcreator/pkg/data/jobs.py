@@ -7,6 +7,7 @@ class JobRequestDto:
     customerOrganizationId: str
     customerUserId: str
     jobName: str
+    jobVersion: float
     jobRequestTimestamp: float
 
     def toDict(
@@ -16,6 +17,7 @@ class JobRequestDto:
             "customerOrganizationId": self.customerOrganizationId,
             "customerUserId": self.customerUserId,
             "jobName": self.jobName,
+            "jobVersion": self.jobVersion,
             "jobRequestTimestamp": self.jobRequestTimestamp,
         }
 
@@ -27,6 +29,7 @@ class JobCreationDto:
     jobId: str
     jobName: str
     jobStatus: str
+    jobVersion: float
     jobRequestTimestamp: float
     jobCreationTimestamp: float
 
@@ -39,6 +42,7 @@ class JobCreationDto:
             "jobId": self.jobId,
             "jobName": self.jobName,
             "jobStatus": self.jobStatus,
+            "jobVersion": self.jobVersion,
             "jobRequestTimestamp": self.jobRequestTimestamp,
             "jobCreationTimestamp": self.jobCreationTimestamp,
         }

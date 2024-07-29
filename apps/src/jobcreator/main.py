@@ -4,6 +4,7 @@ import multiprocessing
 from pkg.config.config import Config
 from pkg.server.server import Server
 from pkg.broker.kafkaconsumer import BrokerConsumerKafka
+from pkg.database.mongodb import DatabaseMongoDb
 from pkg.cache.redis import CacheRedis
 from pkg.jobs.creator import JobCreator
 
@@ -22,6 +23,10 @@ def setLoggingLevel(
 
 
 def processJobRequests(
+    databaseMasterAddress: str,
+    databaseSlaveAddress: str,
+    databaseUsername: str,
+    databasePassword: str,
     cacheMasterAddress: str,
     cacheSlaveAddress: str,
     cachePort: str,
@@ -30,6 +35,14 @@ def processJobRequests(
     brokerTopic: str,
     brokerConsumerGroup: str,
 ):
+    # Instantiate MongoDB database
+    mongodb = DatabaseMongoDb(
+        masterAddress=databaseMasterAddress,
+        slaveAddress=databaseSlaveAddress,
+        username=databaseUsername,
+        password=databasePassword,
+    )
+
     # Instantiate Redis cache
     redis = CacheRedis(
         masterAddress=cacheMasterAddress,
@@ -47,8 +60,9 @@ def processJobRequests(
 
     # Run the job creator
     JobCreator(
-        brokerConsumer=kafkaConsumer,
+        database=mongodb,
         cache=redis,
+        brokerConsumer=kafkaConsumer,
     ).run()
 
 
@@ -73,6 +87,10 @@ def main():
         multiprocessing.Process(
             target=processJobRequests,
             args=(
+                cfg.DATABASE_MASTER_ADDRESS,
+                cfg.DATABASE_SLAVE_ADDRESS,
+                cfg.DATABASE_USERNAME,
+                cfg.DATABASE_PASSWORD,
                 cfg.CACHE_MASTER_ADDRESS,
                 cfg.CACHE_SLAVE_ADDRESS,
                 cfg.CACHE_PORT,

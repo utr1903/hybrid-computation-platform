@@ -3,8 +3,9 @@ import logging
 import uuid
 from datetime import datetime
 
-from pkg.broker.consumer import BrokerConsumer
+from pkg.database.database import Database
 from pkg.cache.cache import Cache
+from pkg.broker.consumer import BrokerConsumer
 from pkg.data.jobs import JobRequestDto, JobCreationDto
 
 logger = logging.getLogger(__name__)
@@ -13,19 +14,19 @@ logger = logging.getLogger(__name__)
 class JobCreator:
     def __init__(
         self,
-        brokerConsumer: BrokerConsumer,
+        database: Database,
         cache: Cache,
+        brokerConsumer: BrokerConsumer,
     ):
-        self.brokerConsumer = brokerConsumer
+        self.database = database
         self.cache = cache
+        self.brokerConsumer = brokerConsumer
 
     def run(
         self,
     ) -> None:
 
-        self.brokerConsumer.consume(
-            consumeFunction=self.processJobRequest,
-        )
+        self.brokerConsumer.consume(self.processJobRequest)
 
     def processJobRequest(
         self,
@@ -33,6 +34,8 @@ class JobCreator:
     ) -> None:
 
         try:
+            logger.info(message)
+
             # Extract job request DTO
             jobRequestDto = self.extractJobRequestDto(message)
 
@@ -41,8 +44,8 @@ class JobCreator:
 
             # Create job
             self.createJob(jobCreationDto)
-        except:
-            pass
+        except Exception as e:
+            logger.error(e)
 
     def extractJobRequestDto(
         self,
@@ -53,6 +56,7 @@ class JobCreator:
             customerOrganizationId=message["customerOrganizationId"],
             customerUserId=message["customerUserId"],
             jobName=message["jobName"],
+            jobVersion=message["jobVersion"],
             jobRequestTimestamp=message["jobRequestTimestamp"],
         )
 
@@ -65,6 +69,7 @@ class JobCreator:
             customerUserId=jobRequestDto.customerUserId,
             jobId=str(uuid.uuid4()),
             jobName=jobRequestDto.jobName,
+            jobVersion=jobRequestDto.jobVersion,
             jobStatus="CREATED",
             jobRequestTimestamp=jobRequestDto.jobRequestTimestamp,
             jobCreationTimestamp=datetime.now().timestamp(),
@@ -74,6 +79,16 @@ class JobCreator:
         self,
         jobCreationDto: JobCreationDto,
     ) -> None:
+
+        try:
+            logger.info("Inserting job in database...")
+            self.database.insert(
+                request=jobCreationDto.toDict(),
+            )
+            logger.info("Inserting job in database succeeded.")
+        except Exception as e:
+            logger.info(f"Inserting job in database failed: {e}")
+            return
 
         try:
             logger.info("Setting job in cache...")
