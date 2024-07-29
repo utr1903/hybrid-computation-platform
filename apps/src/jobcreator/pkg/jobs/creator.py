@@ -299,14 +299,3 @@ class JobCreator:
         logger.info(
             f"Inserting job [{jobCreationDto.jobId}] with version [{jobCreationDto.jobVersion}] succeeded."
         )
-
-    def setIndividualJobInCache(
-        self,
-        job: dict,
-    ):
-        logger.info(f"Setting job [{job.get("jobId")}] in cache.")
-        self.cache.set(
-            key=job.get("jobId"),
-            value=json.dumps(job),
-        )
-        logger.info(f"Setting job [{job.get("jobId")}] in cache succeeded.")
