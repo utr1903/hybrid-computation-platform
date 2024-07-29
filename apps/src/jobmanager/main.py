@@ -2,6 +2,7 @@ import logging
 
 from pkg.config.config import Config
 from pkg.server.server import Server
+from pkg.database.mongodb import DatabaseMongoDb
 from pkg.cache.redis import CacheRedis
 
 
@@ -29,16 +30,24 @@ def main():
     # Set logging level
     setLoggingLevel(level=cfg.LOGGING_LEVEL)
 
+    # Instantiate MongoDB database
+    mongodb = DatabaseMongoDb(
+        slaveAddress=cfg.DATABASE_SLAVE_ADDRESS,
+        username=cfg.DATABASE_USERNAME,
+        password=cfg.DATABASE_PASSWORD,
+    )
+
     # Instantiate Redis cache
     redis = CacheRedis(
-        masterAddress=cfg.REDIS_MASTER_SERVER,
-        slaveAddress=cfg.REDIS_SLAVES_SERVERS,
-        port=int(cfg.REDIS_PORT),
-        password=cfg.REDIS_PASSWORD,
+        masterAddress=cfg.CACHE_MASTER_ADDRESS,
+        slaveAddress=cfg.CACHE_SLAVE_ADDRESS,
+        port=int(cfg.CACHE_PORT),
+        password=cfg.CACHE_PASSWORD,
     )
 
     # Create & run HTTP server
     srv = Server(
+        database=mongodb,
         cache=redis,
     )
     srv.run()

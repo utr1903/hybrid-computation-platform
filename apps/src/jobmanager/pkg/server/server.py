@@ -4,6 +4,7 @@ import json
 from waitress import serve
 from flask import Flask, request, Response
 
+from pkg.database.database import Database
 from pkg.cache.cache import Cache
 
 
@@ -14,6 +15,7 @@ class Server:
 
     def __init__(
         self,
+        database: Database,
         cache: Cache,
     ):
         self.app = Flask(__name__)
@@ -21,6 +23,7 @@ class Server:
         self.app.use_reloader = False
         self.register_endpoints()
 
+        self.database = database
         self.cache = cache
 
     def register_endpoints(
@@ -49,10 +52,17 @@ class Server:
         self,
     ):
         try:
-            logger.info("Listing jobs...")
-            jobs = self.cache.get("jobs")
+            # Get jobs from cache
+            jobs = self.getJobsFromCache()
+
             if jobs is None:
-                jobs = []
+                logger.info("No jobs are found in cache.")
+
+                # Get jobs from database
+                jobs = self.getJobsFromDatabase()
+
+                # Set jobs in cache
+                self.cache.set("jobs", jobs)
 
             logger.info(json.loads(jobs))
 
@@ -76,3 +86,21 @@ class Server:
     ):
         logger.info("Starting server...")
         serve(self.app, host="0.0.0.0", port=8080)
+
+    def getJobsFromCache(
+        self,
+    ) -> bytes | None:
+        logger.info("Getting jobs from cache...")
+        return self.cache.get("jobs")
+
+    def getJobsFromDatabase(
+        self,
+    ) -> str | None:
+        jobs = self.database.findMany(
+            databaseName="custoemrorg1",
+            collectionName="jobs",
+            query={},
+            limit=10,
+        )
+
+        return json.dumps(jobs)

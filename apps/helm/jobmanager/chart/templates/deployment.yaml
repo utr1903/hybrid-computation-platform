@@ -25,14 +25,20 @@ spec:
                   fieldPath: metadata.name
             - name: LOGGING_LEVEL
               value: "{{ .Values.logs.level }}"
-            - name: REDIS_MASTER_SERVER
-              value: {{ .Values.redis.addresses.master }}
-            - name: REDIS_SLAVES_SERVERS
-              value: {{ .Values.redis.addresses.slaves }}
-            - name: REDIS_PORT
-              value: "{{ .Values.redis.port }}"
-            - name: REDIS_PASSWORD
-              value: "{{ .Values.redis.password }}"
+            - name: DATABASE_SLAVE_ADDRESS
+              value: {{ .Values.database.addresses.slave }}
+            - name: DATABASE_USERNAME
+              value: {{ .Values.database.username }}
+            - name: DATABASE_PASSWORD
+              value: {{ .Values.database.password }}
+            - name: CACHE_MASTER_ADDRESS
+              value: {{ .Values.cache.addresses.master }}
+            - name: CACHE_SLAVE_ADDRESS
+              value: {{ .Values.cache.addresses.slave }}
+            - name: CACHE_PORT
+              value: "{{ .Values.cache.port }}"
+            - name: CACHE_PASSWORD
+              value: "{{ .Values.cache.password }}"
           ports:
             - containerPort: 8080
           resources:

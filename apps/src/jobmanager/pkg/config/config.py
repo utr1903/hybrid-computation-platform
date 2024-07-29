@@ -8,23 +8,39 @@ class Config:
         # Logging level
         self.LOGGING_LEVEL = os.getenv("LOGGING_LEVEL")
 
-        # Redis parameters
-        self.REDIS_MASTER_SERVER = os.getenv("REDIS_MASTER_SERVER")
-        self.REDIS_SLAVES_SERVERS = os.getenv("REDIS_SLAVES_SERVERS")
-        self.REDIS_PORT = os.getenv("REDIS_PORT")
-        self.REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
+        # Database parameters
+        self.DATABASE_SLAVE_ADDRESS = os.getenv("DATABASE_SLAVE_ADDRESS")
+        self.DATABASE_USERNAME = os.getenv("DATABASE_USERNAME")
+        self.DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD")
+
+        # Cache parameters
+        self.CACHE_MASTER_ADDRESS = os.getenv("CACHE_MASTER_ADDRESS")
+        self.CACHE_SLAVE_ADDRESS = os.getenv("CACHE_SLAVE_ADDRESS")
+        self.CACHE_PORT = os.getenv("CACHE_PORT")
+        self.CACHE_PASSWORD = os.getenv("CACHE_PASSWORD")
 
     def validate(self) -> bool:
         if not self.LOGGING_LEVEL:
             return False
         if self.LOGGING_LEVEL not in ["DEBUG", "INFO", "ERROR"]:
             return False
-        if not self.REDIS_MASTER_SERVER:
+
+        # Validate database parameters
+        if not self.DATABASE_SLAVE_ADDRESS:
             return False
-        if not self.REDIS_SLAVES_SERVERS:
+        if not self.DATABASE_USERNAME:
             return False
-        if not self.REDIS_PORT:
+        if not self.DATABASE_PASSWORD:
             return False
-        if not self.REDIS_PASSWORD:
+
+        # Validate cache parameters
+        if not self.CACHE_MASTER_ADDRESS:
             return False
+        if not self.CACHE_SLAVE_ADDRESS:
+            return False
+        if not self.CACHE_PORT:
+            return False
+        if not self.CACHE_PASSWORD:
+            return False
+
         return True
