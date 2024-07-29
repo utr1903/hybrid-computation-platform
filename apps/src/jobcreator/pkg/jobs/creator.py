@@ -49,7 +49,10 @@ class JobCreator:
                 self.createAllJobsCollection(jobCreationDto)
 
                 # Add job to all jobs collection
-                job = self.addJobToAllJobsCollection(jobCreationDto)
+                self.addJobToAllJobsCollection(jobCreationDto)
+
+                # Get the job from all jobs collection if it exists
+                job = self.getJobInAllJobsCollection(jobCreationDto)
 
                 # Set jobs in cache
                 self.setAllJobsInCache([job])
@@ -62,7 +65,7 @@ class JobCreator:
 
                 # If job doesn't exist, add it
                 if job is None:
-                    job = self.addJobToAllJobsCollection(
+                    self.addJobToAllJobsCollection(
                         jobCreationDto,
                     )
                 # Otherwise, update the job and increment the version
@@ -140,17 +143,15 @@ class JobCreator:
     def addJobToAllJobsCollection(
         self,
         jobCreationDto: JobCreationDto,
-    ) -> dict:
+    ) -> None:
 
         logger.info(f"Inserting job [{jobCreationDto.jobId}]...")
-        job = self.database.insert(
+        self.database.insert(
             databaseName=jobCreationDto.customerOrganizationId,
             collectionName="jobs",
             request=jobCreationDto.toDict(),
         )
         logger.info(f"Inserting job [{jobCreationDto.jobId}] succeeded.")
-
-        return job
 
     def getJobInAllJobsCollection(
         self,
@@ -158,16 +159,26 @@ class JobCreator:
     ) -> dict | None:
 
         logger.info(f"Getting job [{jobCreationDto.jobId}]...")
-        job = self.database.findOne(
+        result = self.database.findOne(
             databaseName=jobCreationDto.customerOrganizationId,
             collectionName="jobs",
             query={"jobId": jobCreationDto.jobId},
         )
 
-        if job is None:
+        if result is None:
             logger.info(f"Job [{jobCreationDto.jobId}] does not exist.")
+            return None
         else:
             logger.info(f"Getting [{jobCreationDto.jobId}] succeeded.")
+            return {
+                "customerUserId": result.get("customerUserId"),
+                "jobId": result.get("jobId"),
+                "jobName": result.get("jobName"),
+                "jobStatus": result.get("jobStatus"),
+                "jobVersion": result.get("jobVersion"),
+                "jobRequestTimestamp": result.get("jobRequestTimestamp"),
+                "jobCreationTimestamp": result.get("jobCreationTimestamp"),
+            }
 
     def updateJobInAllJobsCollection(
         self,
@@ -188,7 +199,7 @@ class JobCreator:
         customerOrganizationId: str,
     ):
         logger.info(f"Getting all jobs...")
-        jobs = self.database.findMany(
+        results = self.database.findMany(
             databaseName=customerOrganizationId,
             collectionName="jobs",
             query={},
@@ -196,12 +207,26 @@ class JobCreator:
         )
         logger.info(f"Getting all jobs succeeded.")
 
+        jobs: list[dict] = []
+        for result in results:
+            jobs.append(
+                {
+                    "customerUserId": result.get("customerUserId"),
+                    "jobId": result.get("jobId"),
+                    "jobName": result.get("jobName"),
+                    "jobStatus": result.get("jobStatus"),
+                    "jobVersion": result.get("jobVersion"),
+                    "jobRequestTimestamp": result.get("jobRequestTimestamp"),
+                    "jobCreationTimestamp": result.get("jobCreationTimestamp"),
+                }
+            )
         return jobs
 
     def setAllJobsInCache(
         self,
         jobs: list[dict],
     ):
+        print(jobs)
         logger.info(f"Setting jobs in cache.")
         self.cache.set(
             key="jobs",

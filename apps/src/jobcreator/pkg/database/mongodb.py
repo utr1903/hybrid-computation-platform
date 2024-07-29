@@ -97,8 +97,14 @@ class DatabaseMongoDb(Database):
         collectionName: str,
         query: dict,
         limit: int,
-    ) -> dict | None:
-        return self.slave[databaseName][collectionName].find(
+    ) -> list[dict] | None:
+        cursor = self.slave[databaseName][collectionName].find(
             query,
             limit=limit,
         )
+
+        items = []
+        for item in cursor:
+            items.append(item)
+
+        return items

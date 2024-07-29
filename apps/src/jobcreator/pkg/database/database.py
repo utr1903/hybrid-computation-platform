@@ -70,5 +70,5 @@ class Database(ABC):
         collectionName: str,
         query: dict,
         limit: int,
-    ) -> dict | None:
+    ) -> list[dict] | None:
         pass
