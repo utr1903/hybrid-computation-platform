@@ -26,8 +26,8 @@ resources:
     # Memory
     memory: 1000Mi
 
-# Kafka
-kafka:
+# Broker
+broker:
   # Address
   address: "kafka.platform.svc.cluster.local:9092"
   # Topic

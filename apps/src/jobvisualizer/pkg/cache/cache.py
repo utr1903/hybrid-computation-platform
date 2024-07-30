@@ -10,3 +10,10 @@ class Cache(ABC):
         value,
     ) -> None:
         pass
+
+    @abstractmethod
+    def get(
+        self,
+        key,
+    ) -> bytes | None:
+        pass

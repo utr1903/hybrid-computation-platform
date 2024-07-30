@@ -44,8 +44,6 @@ fi
 # database
 databaseName="mongodb"
 databaseNamespace="platform"
-# databaseAddressMaster="${databaseName}-arbiter-headless.${databaseNamespace}.svc.cluster.local"
-databaseAddressMaster="${databaseName}-headless.${databaseNamespace}.svc.cluster.local"
 databaseAddressSlave="${databaseName}-headless.${databaseNamespace}.svc.cluster.local"
 databaseUsername="customerorg1"
 databasePassword="customerorg1"
@@ -58,35 +56,27 @@ cacheAddressSlave="${cacheName}-replicas.${cacheNamespace}.svc.cluster.local"
 cachePort=6379
 cachePassword="megasecret"
 
-# broker
-brokerName="kafka"
-brokerNamespace="platform"
-brokerAddress="${brokerName}.${brokerNamespace}.svc.cluster.local:9092"
-brokerTopic="jobs"
-brokerConsumerGroup="jobcreator"
-
-# jobcreator
-jobcreatorName="jobcreator"
-jobcreatorNamespace="jobs"
-jobcreatorImageName="${containerRegistry}/${containerRegistryUsername}/${project}-${jobcreatorName}:latest"
-jobcreatorReplicas=1
+# jobvisualizer
+jobvisualizerName="jobvisualizer"
+jobvisualizerNamespace="jobs"
+jobvisualizerImageName="${containerRegistry}/${containerRegistryUsername}/${project}-${jobvisualizerName}:latest"
+jobvisualizerReplicas=1
 
 ###################
 ### Deploy Helm ###
 ###################
 
-# jobcreator
-helm upgrade ${jobcreatorName} \
+# jobvisualizer
+helm upgrade ${jobvisualizerName} \
   --install \
   --wait \
   --debug \
   --create-namespace \
-  --namespace=${jobcreatorNamespace} \
-  --set imageName=${jobcreatorImageName} \
+  --namespace=${jobvisualizerNamespace} \
+  --set imageName=${jobvisualizerImageName} \
   --set imagePullPolicy="Always" \
-  --set name=${jobcreatorName} \
-  --set replicas=${jobcreatorReplicas} \
-  --set database.addresses.master=${databaseAddressMaster} \
+  --set name=${jobvisualizerName} \
+  --set replicas=${jobvisualizerReplicas} \
   --set database.addresses.slave=${databaseAddressSlave} \
   --set database.username="root" \
   --set database.password="megasecret" \
@@ -94,7 +84,4 @@ helm upgrade ${jobcreatorName} \
   --set cache.addresses.slave=${cacheAddressSlave} \
   --set cache.port=${cachePort} \
   --set cache.password=${cachePassword} \
-  --set broker.address=${brokerAddress} \
-  --set broker.topic=${brokerTopic} \
-  --set broker.consumerGroup=${brokerConsumerGroup} \
   "./chart"

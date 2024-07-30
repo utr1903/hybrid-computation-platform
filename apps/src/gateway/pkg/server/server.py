@@ -4,7 +4,7 @@ import json
 from waitress import serve
 from flask import Flask, request, Response
 
-from pkg.kafka.producer import Producer
+from pkg.broker.producer import BrokerProducer
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +13,7 @@ class Server:
 
     def __init__(
         self,
-        producer: Producer,
+        producer: BrokerProducer,
     ):
         self.app = Flask(__name__)
         self.app.debug = False
@@ -54,7 +54,7 @@ class Server:
                 mimetype="application/json",
             )
 
-        # Publish to Kafka topic
+        # Publish to broker
         self.producer.produce(data)
 
         return Response(
@@ -65,5 +65,5 @@ class Server:
 
     def run(
         self,
-    ):        
+    ):
         serve(self.app, host="0.0.0.0", port=8080)

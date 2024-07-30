@@ -44,6 +44,8 @@ fi
 # database
 databaseName="mongodb"
 databaseNamespace="platform"
+# databaseAddressMaster="${databaseName}-arbiter-headless.${databaseNamespace}.svc.cluster.local"
+databaseAddressMaster="${databaseName}-headless.${databaseNamespace}.svc.cluster.local"
 databaseAddressSlave="${databaseName}-headless.${databaseNamespace}.svc.cluster.local"
 databaseUsername="customerorg1"
 databasePassword="customerorg1"
@@ -55,6 +57,13 @@ cacheAddressMaster="${cacheName}-master.${cacheNamespace}.svc.cluster.local"
 cacheAddressSlave="${cacheName}-replicas.${cacheNamespace}.svc.cluster.local"
 cachePort=6379
 cachePassword="megasecret"
+
+# broker
+brokerName="kafka"
+brokerNamespace="platform"
+brokerAddress="${brokerName}.${brokerNamespace}.svc.cluster.local:9092"
+brokerTopic="jobrequest"
+brokerConsumerGroup="jobmanager"
 
 # jobmanager
 jobmanagerName="jobmanager"
@@ -77,6 +86,7 @@ helm upgrade ${jobmanagerName} \
   --set imagePullPolicy="Always" \
   --set name=${jobmanagerName} \
   --set replicas=${jobmanagerReplicas} \
+  --set database.addresses.master=${databaseAddressMaster} \
   --set database.addresses.slave=${databaseAddressSlave} \
   --set database.username="root" \
   --set database.password="megasecret" \
@@ -84,4 +94,7 @@ helm upgrade ${jobmanagerName} \
   --set cache.addresses.slave=${cacheAddressSlave} \
   --set cache.port=${cachePort} \
   --set cache.password=${cachePassword} \
+  --set broker.address=${brokerAddress} \
+  --set broker.topic=${brokerTopic} \
+  --set broker.consumerGroup=${brokerConsumerGroup} \
   "./chart"

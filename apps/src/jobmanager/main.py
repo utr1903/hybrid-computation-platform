@@ -1,9 +1,12 @@
 import logging
+import multiprocessing
 
 from pkg.config.config import Config
 from pkg.server.server import Server
+from pkg.broker.kafkaconsumer import BrokerConsumerKafka
 from pkg.database.mongodb import DatabaseMongoDb
 from pkg.cache.redis import CacheRedis
+from pkg.jobs.manager import JobManager
 
 
 def setLoggingLevel(
@@ -19,6 +22,55 @@ def setLoggingLevel(
         logging.basicConfig(level=logging.INFO)
 
 
+def processJobRequests(
+    databaseMasterAddress: str,
+    databaseSlaveAddress: str,
+    databaseUsername: str,
+    databasePassword: str,
+    cacheMasterAddress: str,
+    cacheSlaveAddress: str,
+    cachePort: str,
+    cachePassword: str,
+    brokerAddress: str,
+    brokerTopic: str,
+    brokerConsumerGroup: str,
+):
+    # Instantiate MongoDB database
+    mongodb = DatabaseMongoDb(
+        masterAddress=databaseMasterAddress,
+        slaveAddress=databaseSlaveAddress,
+        username=databaseUsername,
+        password=databasePassword,
+    )
+
+    # Instantiate Redis cache
+    redis = CacheRedis(
+        masterAddress=cacheMasterAddress,
+        slaveAddress=cacheSlaveAddress,
+        port=int(cachePort),
+        password=cachePassword,
+    )
+
+    # Instantiate Kafka consumer
+    kafkaConsumer = BrokerConsumerKafka(
+        bootstrapServers=brokerAddress,
+        topic=brokerTopic,
+        consumerGroupId=brokerConsumerGroup,
+    )
+
+    # Run the job creator
+    JobManager(
+        database=mongodb,
+        cache=redis,
+        brokerConsumer=kafkaConsumer,
+    ).run()
+
+
+def startServer():
+    server = Server()
+    server.run()
+
+
 def main():
 
     # Parse config
@@ -30,27 +82,36 @@ def main():
     # Set logging level
     setLoggingLevel(level=cfg.LOGGING_LEVEL)
 
-    # Instantiate MongoDB database
-    mongodb = DatabaseMongoDb(
-        slaveAddress=cfg.DATABASE_SLAVE_ADDRESS,
-        username=cfg.DATABASE_USERNAME,
-        password=cfg.DATABASE_PASSWORD,
+    processes: list[multiprocessing.Process] = []
+    processes.append(
+        multiprocessing.Process(
+            target=processJobRequests,
+            args=(
+                cfg.DATABASE_MASTER_ADDRESS,
+                cfg.DATABASE_SLAVE_ADDRESS,
+                cfg.DATABASE_USERNAME,
+                cfg.DATABASE_PASSWORD,
+                cfg.CACHE_MASTER_ADDRESS,
+                cfg.CACHE_SLAVE_ADDRESS,
+                cfg.CACHE_PORT,
+                cfg.CACHE_PASSWORD,
+                cfg.BROKER_ADDRESS,
+                cfg.BROKER_TOPIC,
+                cfg.BROKER_CONSUMER_GROUP,
+            ),
+        )
+    )
+    processes.append(
+        multiprocessing.Process(
+            target=startServer,
+        )
     )
 
-    # Instantiate Redis cache
-    redis = CacheRedis(
-        masterAddress=cfg.CACHE_MASTER_ADDRESS,
-        slaveAddress=cfg.CACHE_SLAVE_ADDRESS,
-        port=int(cfg.CACHE_PORT),
-        password=cfg.CACHE_PASSWORD,
-    )
+    for p in processes:
+        p.start()
 
-    # Create & run HTTP server
-    srv = Server(
-        database=mongodb,
-        cache=redis,
-    )
-    srv.run()
+    for p in processes:
+        p.join()
 
 
 if __name__ == "__main__":

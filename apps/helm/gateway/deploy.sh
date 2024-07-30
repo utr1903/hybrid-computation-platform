@@ -41,12 +41,11 @@ fi
 
 ### Set variables
 
-# kafka
-declare -A kafka
-kafkaName="kafka"
-kafkaNamespace="platform"
-kafkaAdress="${kafkaName}.${kafkaNamespace}.svc.cluster.local:9092"
-kafkaTopic="jobs"
+# broker
+brokerName="kafka"
+brokerNamespace="platform"
+brokerAddress="${brokerName}.${brokerNamespace}.svc.cluster.local:9092"
+brokerTopic="jobrequest"
 
 # gateway
 gatewayName="gateway"
@@ -69,6 +68,6 @@ helm upgrade ${gatewayName} \
   --set imagePullPolicy="Always" \
   --set name=${gatewayName} \
   --set replicas=${gatewayReplicas} \
-  --set kafka.address=${kafkaAdress} \
-  --set kafka.topic=${kafkaTopic} \
+  --set broker.address=${brokerAddress} \
+  --set broker.topic=${brokerTopic} \
   "./chart"

@@ -8,17 +8,17 @@ class Config:
         # Logging level
         self.LOGGING_LEVEL = os.getenv("LOGGING_LEVEL")
 
-        # Kafka parameters
-        self.KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS")
-        self.KAFKA_TOPIC = os.getenv("KAFKA_TOPIC")
+        # Broker parameters
+        self.BROKER_ADDRESS = os.getenv("BROKER_ADDRESS")
+        self.BROKER_TOPIC = os.getenv("BROKER_TOPIC")
 
     def validate(self) -> bool:
         if not self.LOGGING_LEVEL:
             return False
         if self.LOGGING_LEVEL not in ["DEBUG", "INFO", "ERROR"]:
             return False
-        if not self.KAFKA_BOOTSTRAP_SERVERS:
+        if not self.BROKER_ADDRESS:
             return False
-        if not self.KAFKA_TOPIC:
+        if not self.BROKER_TOPIC:
             return False
         return True

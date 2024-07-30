@@ -1,7 +1,7 @@
 ### Variables
 
 # Name
-name: jobcreator
+name: jobvisualizer
 
 # Logs
 logs:
@@ -30,8 +30,6 @@ resources:
 database:
   # Address
   addresses:
-    # Master
-    master: "mongodb-arbiter-headless.platform.svc.cluster.local"
     # Slave
     slave: "mongodb-headless.platform.svc.cluster.local"
   # Username
@@ -51,12 +49,3 @@ cache:
   port: 6379
   # Password
   password: "megasecret"
-
-# Broker
-broker:
-  # Address
-  address: "kafka.platform.svc.cluster.local:9092"
-  # Topic
-  topic: "jobs"
-  # Consumer group
-  consumerGroup: "jobcreator"

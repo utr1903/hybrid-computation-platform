@@ -32,9 +32,3 @@ class CacheRedis(Cache):
         value,
     ) -> None:
         self.master.set(key, value)
-
-    def get(
-        self,
-        key,
-    ) -> bytes | None:
-        return self.slave.get(key)

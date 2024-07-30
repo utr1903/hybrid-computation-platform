@@ -2,7 +2,8 @@ import logging
 
 from pkg.config.config import Config
 from pkg.server.server import Server
-from pkg.broker.kafkaproducer import BrokerProducerKafka
+from pkg.database.mongodb import DatabaseMongoDb
+from pkg.cache.redis import CacheRedis
 
 
 def setLoggingLevel(
@@ -29,15 +30,25 @@ def main():
     # Set logging level
     setLoggingLevel(level=cfg.LOGGING_LEVEL)
 
-    # Create Kafka producer
-    kafka = BrokerProducerKafka(
-        bootstrap_servers=cfg.BROKER_ADDRESS,
-        topic=cfg.BROKER_TOPIC,
+    # Instantiate MongoDB database
+    mongodb = DatabaseMongoDb(
+        slaveAddress=cfg.DATABASE_SLAVE_ADDRESS,
+        username=cfg.DATABASE_USERNAME,
+        password=cfg.DATABASE_PASSWORD,
+    )
+
+    # Instantiate Redis cache
+    redis = CacheRedis(
+        masterAddress=cfg.CACHE_MASTER_ADDRESS,
+        slaveAddress=cfg.CACHE_SLAVE_ADDRESS,
+        port=int(cfg.CACHE_PORT),
+        password=cfg.CACHE_PASSWORD,
     )
 
     # Create & run HTTP server
     srv = Server(
-        producer=kafka,
+        database=mongodb,
+        cache=redis,
     )
     srv.run()
 
