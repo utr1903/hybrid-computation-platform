@@ -3,6 +3,7 @@ import multiprocessing
 
 from pkg.config.config import Config
 from pkg.server.server import Server
+from pkg.broker.kafkaproducer import BrokerProducerKafka
 from pkg.broker.kafkaconsumer import BrokerConsumerKafka
 from pkg.database.mongodb import DatabaseMongoDb
 from pkg.organizations.organizationcollectioncreator import (
@@ -58,6 +59,12 @@ def processOrganizationRequests(
         password=databasePassword,
     )
 
+    # Instantiate Kafka producer
+    kafkaProducer = BrokerProducerKafka(
+        bootstrapServers=brokerAddress,
+        consumerGroupId=brokerConsumerGroup,
+    )
+
     # Instantiate Kafka consumer
     kafkaConsumer = BrokerConsumerKafka(
         bootstrapServers=brokerAddress,
@@ -67,6 +74,7 @@ def processOrganizationRequests(
     # Run the job creator
     OrganizationCreator(
         database=mongodb,
+        brokerConsumer=kafkaProducer,
         brokerConsumer=kafkaConsumer,
     ).run()
 

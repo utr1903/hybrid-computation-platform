@@ -3,6 +3,7 @@ import logging
 import uuid
 
 from pkg.database.database import Database
+from pkg.broker.producer import BrokerProducer
 from pkg.broker.consumer import BrokerConsumer
 from pkg.data.organizations import (
     OrganizationDataObject,
@@ -16,9 +17,11 @@ class OrganizationCreator:
     def __init__(
         self,
         database: Database,
+        brokerProducer: BrokerProducer,
         brokerConsumer: BrokerConsumer,
     ):
         self.database = database
+        self.brokerProducer = brokerProducer
         self.brokerConsumer = brokerConsumer
 
     def run(
@@ -47,6 +50,9 @@ class OrganizationCreator:
 
             # Add organization to organizations collection
             self.addOrganizationToOrganizationsCollection(organizationDataObject)
+
+            # Publish new organization to broker
+            self.publishOrganizationCreated(organizationDataObject)
 
         except Exception as e:
             logger.error(e)
@@ -82,4 +88,14 @@ class OrganizationCreator:
         )
         logger.info(
             f"Inserting job [{organizationDataObject.organizationId}] succeeded."
+        )
+
+    def publishOrganizationCreated(
+        self,
+        organizationDataObject: OrganizationDataObject,
+    ) -> None:
+        # Publish to broker
+        self.brokerProducer.produce(
+            "organizationcreated",
+            json.dumps(organizationDataObject),
         )
