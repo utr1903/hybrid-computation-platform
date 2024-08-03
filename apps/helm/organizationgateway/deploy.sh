@@ -48,7 +48,7 @@ brokerAddress="${brokerName}.${brokerNamespace}.svc.cluster.local:9092"
 
 # organizationgateway
 organizationgatewayName="organizationgateway"
-organizationgatewayNamespace="jobs"
+organizationgatewayNamespace="organizations"
 organizationgatewayImageName="${containerRegistry}/${containerRegistryUsername}/${project}-${organizationgatewayName}:latest"
 organizationgatewayReplicas=1
 
@@ -63,7 +63,7 @@ helm upgrade ${organizationgatewayName} \
   --debug \
   --create-namespace \
   --namespace=${organizationgatewayNamespace} \
-  --set imageName=${gatewayImageName} \
+  --set imageName=${organizationgatewayImageName} \
   --set imagePullPolicy="Always" \
   --set name=${organizationgatewayName} \
   --set replicas=${organizationgatewayReplicas} \
