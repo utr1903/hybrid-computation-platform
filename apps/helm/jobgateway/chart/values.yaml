@@ -30,5 +30,3 @@ resources:
 broker:
   # Address
   address: "kafka.platform.svc.cluster.local:9092"
-  # Topic
-  topic: "jobs"

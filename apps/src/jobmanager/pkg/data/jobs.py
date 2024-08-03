@@ -16,48 +16,34 @@ class OrganizationDataObject:
 
 
 @dataclass
-class JobRequestDto:
-    customerOrganizationId: str
-    customerUserId: str
-    jobId: str
+class JobCreateRequestDto:
+    organizationId: str
     jobName: str
-    jobVersion: float
-    jobRequestTimestamp: float
 
     def toDict(
         self,
     ):
         return {
-            "customerOrganizationId": self.customerOrganizationId,
-            "customerUserId": self.customerUserId,
-            "jobId": self.jobId,
+            "organizationId": self.organizationId,
             "jobName": self.jobName,
-            "jobVersion": self.jobVersion,
-            "jobRequestTimestamp": self.jobRequestTimestamp,
         }
 
 
 @dataclass
-class JobCreationDto:
-    customerOrganizationId: str
-    customerUserId: str
+class JobDataObject:
+    organizationId: str
     jobId: str
     jobName: str
     jobStatus: str
     jobVersion: float
-    jobRequestTimestamp: float
-    jobCreationTimestamp: float
 
     def toDict(
         self,
     ):
         return {
-            "customerOrganizationId": self.customerOrganizationId,
-            "customerUserId": self.customerUserId,
+            "customerOrganizationId": self.organizationId,
             "jobId": self.jobId,
             "jobName": self.jobName,
             "jobStatus": self.jobStatus,
             "jobVersion": self.jobVersion,
-            "jobRequestTimestamp": self.jobRequestTimestamp,
-            "jobCreationTimestamp": self.jobCreationTimestamp,
         }
