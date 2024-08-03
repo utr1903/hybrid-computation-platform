@@ -126,6 +126,7 @@ class BrokerProcessorJobCreator(BrokerProcessor):
             jobStatus="CREATED",
             timestampRequest=jobRequestDto.timestampRequest,
             timestampCreate=datetime.now().timestamp(),
+            timestampUpdate=None,
         )
 
     def processIndividualJobCollection(
