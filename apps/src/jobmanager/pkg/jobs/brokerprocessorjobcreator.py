@@ -53,8 +53,8 @@ class BrokerProcessorJobCreator(BrokerProcessor):
             # Extract job request DTO
             jobCreateRequestDto = self.extractJobCreateRequestDto(messageParsed)
 
-            # Create job creation DTO
-            jobDataObject = self.createJobCreationDto(jobCreateRequestDto)
+            # Create job data object
+            jobDataObject = self.createJobDataObject(jobCreateRequestDto)
 
             # Process individual job collection
             self.processIndividualJobCollection(jobDataObject)
@@ -114,7 +114,7 @@ class BrokerProcessorJobCreator(BrokerProcessor):
             timestampRequest=message.get("timestampRequest"),
         )
 
-    def createJobCreationDto(
+    def createJobDataObject(
         self,
         jobRequestDto: JobCreateRequestDto,
     ) -> JobDataObject:
