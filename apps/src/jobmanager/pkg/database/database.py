@@ -10,6 +10,12 @@ logger = logging.getLogger(__name__)
 class Database(ABC):
 
     @abstractmethod
+    def connect(
+        self,
+    ) -> None:
+        pass
+
+    @abstractmethod
     def doesCollectionExist(
         self,
         databaseName: str,

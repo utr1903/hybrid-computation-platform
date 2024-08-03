@@ -37,26 +37,21 @@ def processJobRequests(
     cachePassword: str,
     brokerAddress: str,
 ):
-    # Instantiate MongoDB database
-    mongodb = DatabaseMongoDb(
-        masterAddress=databaseMasterAddress,
-        slaveAddress=databaseSlaveAddress,
-        username=databaseUsername,
-        password=databasePassword,
-    )
-
-    # Instantiate Redis cache
-    redis = CacheRedis(
-        masterAddress=cacheMasterAddress,
-        slaveAddress=cacheSlaveAddress,
-        port=int(cachePort),
-        password=cachePassword,
-    )
 
     # Instantiate broker processor for creating job collections
     brokerProcessorJobsCollectionCreator = BrokerProcessorJobsCollectionCreator(
-        database=mongodb,
-        cache=redis,
+        database=DatabaseMongoDb(
+            masterAddress=databaseMasterAddress,
+            slaveAddress=databaseSlaveAddress,
+            username=databaseUsername,
+            password=databasePassword,
+        ),
+        cache=CacheRedis(
+            masterAddress=cacheMasterAddress,
+            slaveAddress=cacheSlaveAddress,
+            port=int(cachePort),
+            password=cachePassword,
+        ),
         brokerConsumer=BrokerConsumerKafka(
             bootstrapServers=brokerAddress,
             topic="organizationcreated",
@@ -66,8 +61,18 @@ def processJobRequests(
 
     # Instantiate broker processor for creating jobs
     brokerProcessorJobCreator = BrokerProcessorJobCreator(
-        database=mongodb,
-        cache=redis,
+        database=DatabaseMongoDb(
+            masterAddress=databaseMasterAddress,
+            slaveAddress=databaseSlaveAddress,
+            username=databaseUsername,
+            password=databasePassword,
+        ),
+        cache=CacheRedis(
+            masterAddress=cacheMasterAddress,
+            slaveAddress=cacheSlaveAddress,
+            port=int(cachePort),
+            password=cachePassword,
+        ),
         brokerConsumer=BrokerConsumerKafka(
             bootstrapServers=brokerAddress,
             topic="createjob",

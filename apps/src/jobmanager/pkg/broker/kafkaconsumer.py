@@ -14,11 +14,16 @@ class BrokerConsumerKafka(BrokerConsumer):
         topic: str,
         consumerGroupId: str,
     ):
-        # Kafka
         self.topic = topic
+        self.bootstrapServers = bootstrapServers
+        self.consumerGroupId = consumerGroupId
+
+    def connect(
+        self,
+    ):
         self.consumer = KafkaConsumer(
-            bootstrap_servers=bootstrapServers,
-            group_id=consumerGroupId,
+            bootstrap_servers=self.bootstrapServers,
+            group_id=self.consumerGroupId,
         )
 
     def consume(
