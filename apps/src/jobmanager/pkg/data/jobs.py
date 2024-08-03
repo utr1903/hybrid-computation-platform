@@ -32,6 +32,24 @@ class JobCreateRequestDto:
 
 
 @dataclass
+class JobUpdateRequestDto:
+    organizationId: str
+    jobId: str
+    jobName: str
+    jobStatus: str
+
+    def toDict(
+        self,
+    ):
+        return {
+            "organizationId": self.organizationId,
+            "jobId": self.jobId,
+            "jobName": self.jobName,
+            "jobStatus": self.jobStatus,
+        }
+
+
+@dataclass
 class JobDataObject:
     organizationId: str
     jobId: str
@@ -40,6 +58,7 @@ class JobDataObject:
     jobVersion: float
     timestampRequest: float
     timestampCreate: float
+    timestampUpdate: float
 
     def toDict(
         self,
@@ -52,4 +71,5 @@ class JobDataObject:
             "jobVersion": self.jobVersion,
             "timestampRequest": self.timestampRequest,
             "timestampCreate": self.timestampCreate,
+            "timestampUpdate": self.timestampUpdate,
         }
