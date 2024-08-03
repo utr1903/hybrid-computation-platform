@@ -6,6 +6,10 @@ from pkg.server.server import Server
 from pkg.broker.kafkaconsumer import BrokerConsumerKafka
 from pkg.database.mongodb import DatabaseMongoDb
 from pkg.cache.redis import CacheRedis
+from pkg.jobs.brokerprocessorjobcreator import BrokerProcessorJobCreator
+from pkg.jobs.brokerprocessorjobscollectioncreator import (
+    BrokerProcessorJobsCollectionCreator,
+)
 from pkg.jobs.manager import JobManager
 
 
@@ -49,25 +53,34 @@ def processJobRequests(
         password=cachePassword,
     )
 
-    # Instantiate Kafka consumer
-    kafkaConsumer = BrokerConsumerKafka(
-        bootstrapServers=brokerAddress,
-        topic="organizationcreated",
-        consumerGroupId="jobmanager",
+    # Instantiate broker processor for creating job collections
+    brokerProcessorJobsCollectionCreator = BrokerProcessorJobsCollectionCreator(
+        database=mongodb,
+        cache=redis,
+        brokerConsumer=BrokerConsumerKafka(
+            bootstrapServers=brokerAddress,
+            topic="organizationcreated",
+            consumerGroupId="jobmanager",
+        ),
     )
 
-    # Instantiate Kafka consumer
-    kafkaConsumer = BrokerConsumerKafka(
-        bootstrapServers=brokerAddress,
-        topic="createjob",
-        consumerGroupId="jobmanager",
+    # Instantiate broker processor for creating jobs
+    brokerProcessorJobCreator = BrokerProcessorJobCreator(
+        database=mongodb,
+        cache=redis,
+        brokerConsumer=BrokerConsumerKafka(
+            bootstrapServers=brokerAddress,
+            topic="createjob",
+            consumerGroupId="jobmanager",
+        ),
     )
 
     # Run the job creator
     JobManager(
-        database=mongodb,
-        cache=redis,
-        brokerAddress=brokerAddress,
+        brokerProcessors=[
+            brokerProcessorJobsCollectionCreator,
+            brokerProcessorJobCreator,
+        ],
     ).run()
 
 

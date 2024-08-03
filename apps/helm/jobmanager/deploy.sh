@@ -62,8 +62,6 @@ cachePassword="megasecret"
 brokerName="kafka"
 brokerNamespace="platform"
 brokerAddress="${brokerName}.${brokerNamespace}.svc.cluster.local:9092"
-brokerTopic="jobrequest"
-brokerConsumerGroup="jobmanager"
 
 # jobmanager
 jobmanagerName="jobmanager"
@@ -95,6 +93,4 @@ helm upgrade ${jobmanagerName} \
   --set cache.port=${cachePort} \
   --set cache.password=${cachePassword} \
   --set broker.address=${brokerAddress} \
-  --set broker.topic=${brokerTopic} \
-  --set broker.consumerGroup=${brokerConsumerGroup} \
   "./chart"

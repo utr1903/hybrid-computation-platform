@@ -94,10 +94,13 @@ class OrganizationCreator:
         self,
         organizationDataObject: OrganizationDataObject,
     ) -> None:
-        logger.info(f"Publishing created organization to  [organizationcreated] topic...")
-        # Publish to broker
+        logger.info(
+            f"Publishing created organization [{organizationDataObject.organizationName}] to [organizationcreated] topic..."
+        )
         self.brokerProducer.produce(
             "organizationcreated",
-            json.dumps(organizationDataObject),
+            json.dumps(organizationDataObject.toDict()).encode("ascii"),
         )
-        logger.info(f"Publishing created organization to  [organizationcreated] topic succeeded.")
+        logger.info(
+            f"Publishing created organization [{organizationDataObject.organizationName}] to [organizationcreated] topic succeeded."
+        )

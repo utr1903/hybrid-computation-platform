@@ -11,7 +11,7 @@ from pkg.data.jobs import JobRequestDto, JobCreationDto
 logger = logging.getLogger(__name__)
 
 
-class JobCreator:
+class BrokerProcessorJobCreator:
     def __init__(
         self,
         database: Database,

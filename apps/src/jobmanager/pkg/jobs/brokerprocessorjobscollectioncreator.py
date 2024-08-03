@@ -8,7 +8,7 @@ from pkg.data.jobs import OrganizationDataObject
 logger = logging.getLogger(__name__)
 
 
-class JobsCollectionCreator:
+class BrokerProcessorJobsCollectionCreator:
     def __init__(
         self,
         database: Database,
@@ -32,7 +32,7 @@ class JobsCollectionCreator:
     def processJobsCollectionCreateRequest(
         self,
         message: dict,
-    ) -> bool:
+    ) -> None:
 
         try:
             logger.info(message)
@@ -48,12 +48,13 @@ class JobsCollectionCreator:
             # Create the jobs collection if it does not exist
             if not collectionExists:
                 self.createCollection()
-
-            return True
+            else:
+                logger.warning(
+                    f"Collection [jobs] in database [{organizationDataObject.organizationId}] already exists."
+                )
 
         except Exception as e:
             logger.error(f"Error processing jobs collection creation: {e}")
-            return False
 
     def extractOrganizationDataObject(
         self,

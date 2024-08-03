@@ -62,7 +62,6 @@ def processOrganizationRequests(
     # Instantiate Kafka producer
     kafkaProducer = BrokerProducerKafka(
         bootstrapServers=brokerAddress,
-        consumerGroupId=brokerConsumerGroup,
     )
 
     # Instantiate Kafka consumer
@@ -74,7 +73,7 @@ def processOrganizationRequests(
     # Run the job creator
     OrganizationCreator(
         database=mongodb,
-        brokerConsumer=kafkaProducer,
+        brokerProducer=kafkaProducer,
         brokerConsumer=kafkaConsumer,
     ).run()
 

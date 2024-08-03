@@ -10,10 +10,10 @@ class BrokerProducerKafka(BrokerProducer):
 
     def __init__(
         self,
-        bootstrap_servers,
+        bootstrapServers: str,
     ):
         self.producer = KafkaProducer(
-            bootstrap_servers=bootstrap_servers,
+            bootstrap_servers=bootstrapServers,
         )
 
     def produce(

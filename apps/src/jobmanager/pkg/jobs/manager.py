@@ -1,15 +1,8 @@
-import json
 import logging
-import uuid
 import multiprocessing
-from datetime import datetime
 
-from pkg.database.database import Database
-from pkg.cache.cache import Cache
-from pkg.broker.consumer import BrokerConsumer
-from pkg.data.jobs import JobRequestDto, JobCreationDto
-from pkg.jobs.jobcreator import JobCreator
-from pkg.jobs.jobscollectioncreator import JobsCollectionCreator
+from pkg.jobs.brokerprocessor import BrokerProcessor
+
 
 logger = logging.getLogger(__name__)
 
@@ -17,48 +10,24 @@ logger = logging.getLogger(__name__)
 class JobManager:
     def __init__(
         self,
-        database: Database,
-        cache: Cache,
+        brokerProcessors: list[BrokerProcessor],
     ):
-        self.database = database
-        self.cache = cache
-        self.brokerConsumer = brokerConsumer
+        self.brokerProcessors = brokerProcessors
 
     def run(
         self,
     ) -> None:
 
         processes: list[multiprocessing.Process] = []
-        processes.append(
-            multiprocessing.Process(
-                target=self.processJobsCollectionCreateRequest,
+        for brokerProcessor in self.brokerProcessors:
+            processes.append(
+                multiprocessing.Process(
+                    target=brokerProcessor.run,
+                )
             )
-        )
-        processes.append(
-            multiprocessing.Process(
-                target=self.processJobCreateRequest,
-            )
-        )
+
         for p in processes:
             p.start()
 
         for p in processes:
             p.join()
-
-    def processJobsCollectionCreateRequest(
-        self,
-    ) -> None:
-        JobsCollectionCreator(
-            self.database,
-            self.cache,
-            self.brokerConsumer,
-        ).run("organizationcreated")
-
-    def processJobCreateRequest(
-        self,
-    ) -> None:
-        JobCreator(
-            self.database,
-            self.cache,
-            self.brokerConsumer,
-        ).run("createjob")
