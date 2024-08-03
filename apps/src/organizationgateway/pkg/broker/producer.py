@@ -10,6 +10,7 @@ class BrokerProducer(ABC):
     @abstractmethod
     def produce(
         self,
-        consumeFunction,
+        topic,
+        data,
     ):
         pass
