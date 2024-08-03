@@ -55,12 +55,12 @@ else
 fi
 
 # Services
-gateway="gateway"
+jobgateway="jobgateway"
 jobmanager="jobmanager"
 jobvisualizer="jobvisualizer"
 
 # Images
-gatewayImageName="${containerRegistry}/${containerRegistryUsername}/${project}-${gateway}:latest"
+jobgatewayImageName="${containerRegistry}/${containerRegistryUsername}/${project}-${jobgateway}:latest"
 jobmanagerImageName="${containerRegistry}/${containerRegistryUsername}/${project}-${jobmanager}:latest"
 jobvisualizerImageName="${containerRegistry}/${containerRegistryUsername}/${project}-${jobvisualizer}:latest"
 
@@ -68,13 +68,13 @@ jobvisualizerImageName="${containerRegistry}/${containerRegistryUsername}/${proj
 ### Build & Push ###
 ####################
 
-# gateway
+# jobgateway
 docker build \
   --platform "linux/${platform}" \
-  --tag "${gatewayImageName}" \
-  --build-arg="APP_NAME=${gateway}" \
-  "./${gateway}"
-docker push "${gatewayImageName}"
+  --tag "${jobgatewayImageName}" \
+  --build-arg="APP_NAME=${jobgateway}" \
+  "./${jobgateway}"
+docker push "${jobgatewayImageName}"
 
 # jobmanager
 docker build \

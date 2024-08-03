@@ -47,27 +47,27 @@ brokerNamespace="platform"
 brokerAddress="${brokerName}.${brokerNamespace}.svc.cluster.local:9092"
 brokerTopic="jobrequest"
 
-# gateway
-gatewayName="gateway"
-gatewayNamespace="jobs"
-gatewayImageName="${containerRegistry}/${containerRegistryUsername}/${project}-${gatewayName}:latest"
-gatewayReplicas=1
+# jobgateway
+jobgatewayName="jobgateway"
+jobgatewayNamespace="jobs"
+jobgatewayImageName="${containerRegistry}/${containerRegistryUsername}/${project}-${jobgatewayName}:latest"
+jobgatewayReplicas=1
 
 ###################
 ### Deploy Helm ###
 ###################
 
-# gateway
-helm upgrade ${gatewayName} \
+# jobgateway
+helm upgrade ${jobgatewayName} \
   --install \
   --wait \
   --debug \
   --create-namespace \
-  --namespace=${gatewayNamespace} \
+  --namespace=${jobgatewayNamespace} \
   --set imageName=${gatewayImageName} \
   --set imagePullPolicy="Always" \
-  --set name=${gatewayName} \
-  --set replicas=${gatewayReplicas} \
+  --set name=${jobgatewayName} \
+  --set replicas=${jobgatewayReplicas} \
   --set broker.address=${brokerAddress} \
   --set broker.topic=${brokerTopic} \
   "./chart"
