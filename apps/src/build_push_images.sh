@@ -54,12 +54,24 @@ else
   fi
 fi
 
-# Services
+### Services ###
+
+# Organizations
+organizationgateway="organizationgateway"
+organizationmanager="organizationmanager"
+
+# Jobs
 jobgateway="jobgateway"
 jobmanager="jobmanager"
 jobvisualizer="jobvisualizer"
 
-# Images
+### Images ###
+
+# Organizations
+organizationgatewayImageName="${containerRegistry}/${containerRegistryUsername}/${project}-${organizationgateway}:latest"
+organizationmanagerImageName="${containerRegistry}/${containerRegistryUsername}/${project}-${organizationmanager}:latest"
+
+# Jobs
 jobgatewayImageName="${containerRegistry}/${containerRegistryUsername}/${project}-${jobgateway}:latest"
 jobmanagerImageName="${containerRegistry}/${containerRegistryUsername}/${project}-${jobmanager}:latest"
 jobvisualizerImageName="${containerRegistry}/${containerRegistryUsername}/${project}-${jobvisualizer}:latest"
@@ -68,26 +80,42 @@ jobvisualizerImageName="${containerRegistry}/${containerRegistryUsername}/${proj
 ### Build & Push ###
 ####################
 
-# jobgateway
-docker build \
-  --platform "linux/${platform}" \
-  --tag "${jobgatewayImageName}" \
-  --build-arg="APP_NAME=${jobgateway}" \
-  "./${jobgateway}"
-docker push "${jobgatewayImageName}"
+# # organizationgateway
+# docker build \
+#   --platform "linux/${platform}" \
+#   --tag "${organizationgatewayImageName}" \
+#   --build-arg="APP_NAME=${organizationgateway}" \
+#   "./${organizationgateway}"
+# docker push "${organizationgatewayImageName}"
 
-# jobmanager
+# organizationmanager
 docker build \
   --platform "linux/${platform}" \
-  --tag "${jobmanagerImageName}" \
-  --build-arg="APP_NAME=${jobmanager}" \
-  "./${jobmanager}"
-docker push "${jobmanagerImageName}"
+  --tag "${organizationmanagerImageName}" \
+  --build-arg="APP_NAME=${organizationmanager}" \
+  "./${organizationmanager}"
+docker push "${organizationmanagerImageName}"
 
-# jobvisualizer
-docker build \
-  --platform "linux/${platform}" \
-  --tag "${jobvisualizerImageName}" \
-  --build-arg="APP_NAME=${jobvisualizer}" \
-  "./${jobvisualizer}"
-docker push "${jobvisualizerImageName}"
+# # jobgateway
+# docker build \
+#   --platform "linux/${platform}" \
+#   --tag "${jobgatewayImageName}" \
+#   --build-arg="APP_NAME=${jobgateway}" \
+#   "./${jobgateway}"
+# docker push "${jobgatewayImageName}"
+
+# # jobmanager
+# docker build \
+#   --platform "linux/${platform}" \
+#   --tag "${jobmanagerImageName}" \
+#   --build-arg="APP_NAME=${jobmanager}" \
+#   "./${jobmanager}"
+# docker push "${jobmanagerImageName}"
+
+# # jobvisualizer
+# docker build \
+#   --platform "linux/${platform}" \
+#   --tag "${jobvisualizerImageName}" \
+#   --build-arg="APP_NAME=${jobvisualizer}" \
+#   "./${jobvisualizer}"
+# docker push "${jobvisualizerImageName}"
