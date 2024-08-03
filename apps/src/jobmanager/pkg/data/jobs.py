@@ -19,6 +19,7 @@ class OrganizationDataObject:
 class JobCreateRequestDto:
     organizationId: str
     jobName: str
+    timestampRequest: float
 
     def toDict(
         self,
@@ -26,6 +27,7 @@ class JobCreateRequestDto:
         return {
             "organizationId": self.organizationId,
             "jobName": self.jobName,
+            "timestampRequest": self.timestampRequest,
         }
 
 
@@ -36,6 +38,8 @@ class JobDataObject:
     jobName: str
     jobStatus: str
     jobVersion: float
+    timestampRequest: float
+    timestampCreate: float
 
     def toDict(
         self,
@@ -46,4 +50,6 @@ class JobDataObject:
             "jobName": self.jobName,
             "jobStatus": self.jobStatus,
             "jobVersion": self.jobVersion,
+            "timestampRequest": self.timestampRequest,
+            "timestampCreate": self.timestampCreate,
         }

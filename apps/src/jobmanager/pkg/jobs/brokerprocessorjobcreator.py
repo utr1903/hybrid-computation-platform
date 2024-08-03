@@ -111,6 +111,7 @@ class BrokerProcessorJobCreator(BrokerProcessor):
         return JobCreateRequestDto(
             organizationId=message.get("organizationId"),
             jobName=message.get("jobName"),
+            timestampRequest=message.get("timestampRequest"),
         )
 
     def createJobCreationDto(
@@ -123,6 +124,8 @@ class BrokerProcessorJobCreator(BrokerProcessor):
             jobName=jobRequestDto.jobName,
             jobVersion=1,
             jobStatus="CREATED",
+            timestampRequest=jobRequestDto.timestampRequest,
+            timestampCreate=datetime.now().timestamp(),
         )
 
     def processIndividualJobCollection(
