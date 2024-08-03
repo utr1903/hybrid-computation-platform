@@ -26,7 +26,9 @@ class BrokerProcessorJobCreator:
         self,
     ) -> None:
 
-        self.brokerConsumer.consume(self.processJobCreateRequest)
+        self.brokerConsumer.consume(
+            self.processJobCreateRequest,
+        )
 
     def processJobCreateRequest(
         self,

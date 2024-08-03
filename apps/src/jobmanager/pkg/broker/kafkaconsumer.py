@@ -1,5 +1,4 @@
 import logging
-import json
 from kafka import KafkaConsumer
 
 from pkg.broker.consumer import BrokerConsumer
@@ -20,7 +19,6 @@ class BrokerConsumerKafka(BrokerConsumer):
         self.consumer = KafkaConsumer(
             bootstrap_servers=bootstrapServers,
             group_id=consumerGroupId,
-            # value_deserializer=lambda m: json.loads(m.decode("ascii")),
         )
 
     def consume(
@@ -32,27 +30,7 @@ class BrokerConsumerKafka(BrokerConsumer):
 
         for message in self.consumer:
             try:
-                # Parse message
-                messageParsed = self.parseMessage(message=message)
-
                 # Consume message with given external function
-                consumeFunction(messageParsed)
+                consumeFunction(message.value)
             except Exception as e:
                 logger.error(e)
-
-    def parseMessage(
-        self,
-        message,
-    ) -> dict:
-
-        logger.info("Parsing message...")
-
-        try:
-            messageParsed = json.loads(message.value)
-        except Exception as e:
-            logger.error(e)
-            raise Exception("Message parsing failed: {e}")
-
-        self.validateMessage(messageParsed)
-
-        return messageParsed

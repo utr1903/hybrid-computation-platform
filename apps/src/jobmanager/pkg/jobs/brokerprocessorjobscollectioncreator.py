@@ -1,3 +1,4 @@
+import json
 import logging
 
 from pkg.database.database import Database
@@ -21,24 +22,25 @@ class BrokerProcessorJobsCollectionCreator:
 
     def run(
         self,
-        topic,
     ) -> None:
 
         self.brokerConsumer.consume(
-            topic,
             self.processJobsCollectionCreateRequest,
         )
 
     def processJobsCollectionCreateRequest(
         self,
-        message: dict,
+        message,
     ) -> None:
 
         try:
             logger.info(message)
 
+            # Parse message
+            messageParsed = self.parseMessage(message=message)
+
             # Extract organization data object
-            organizationDataObject = self.extractOrganizationDataObject(message)
+            organizationDataObject = self.extractOrganizationDataObject(messageParsed)
 
             # Check if the jobs collection for the organization exists
             collectionExists = self.doesCollectionExist(
@@ -47,7 +49,9 @@ class BrokerProcessorJobsCollectionCreator:
 
             # Create the jobs collection if it does not exist
             if not collectionExists:
-                self.createCollection()
+                self.createCollection(
+                    organizationDataObject.organizationId,
+                )
             else:
                 logger.warning(
                     f"Collection [jobs] in database [{organizationDataObject.organizationId}] already exists."
@@ -55,6 +59,44 @@ class BrokerProcessorJobsCollectionCreator:
 
         except Exception as e:
             logger.error(f"Error processing jobs collection creation: {e}")
+
+    def parseMessage(
+        self,
+        message,
+    ) -> dict:
+
+        logger.info("Parsing message...")
+
+        try:
+            messageParsed = json.loads(message)
+        except Exception as e:
+            logger.error(e)
+            raise Exception("Message parsing failed: {e}")
+
+        self.validateMessage(messageParsed)
+
+        return messageParsed
+
+    def validateMessage(
+        self,
+        messageParsed,
+    ) -> None:
+
+        logger.info("Validating message...")
+
+        missingFields = []
+        if "organizationId" not in messageParsed:
+            missingFields.append("organizationId")
+
+        if "organizationName" not in messageParsed:
+            missingFields.append("organizationName")
+
+        if len(missingFields) > 0:
+            msg = f"There are missing fields which have to be defined: {missingFields}"
+            logger.error(msg)
+            raise Exception(msg)
+
+        logger.info("Message validation succeeded.")
 
     def extractOrganizationDataObject(
         self,
