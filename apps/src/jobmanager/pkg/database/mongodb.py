@@ -103,10 +103,12 @@ class DatabaseMongoDb(Database):
         databaseName: str,
         collectionName: str,
         query: dict,
+        sort: list[Tuple[str, int]],
         limit: int,
     ) -> list[dict] | None:
         cursor = self.slave[databaseName][collectionName].find(
             query,
+            sort=sort,
             limit=limit,
         )
 

@@ -29,7 +29,10 @@ class Server:
             rule="/livez", endpoint="livez", view_func=self.livez, methods=["GET"]
         )
         self.app.add_url_rule(
-            rule="/upload", endpoint="upload", view_func=self.upload, methods=["POST"]
+            rule="/create", endpoint="create", view_func=self.create, methods=["POST"]
+        )
+        self.app.add_url_rule(
+            rule="/update", endpoint="update", view_func=self.update, methods=["POST"]
         )
 
     def livez(
@@ -43,7 +46,9 @@ class Server:
         )
         return resp
 
-    def upload(self):
+    def create(
+        self,
+    ):
         data = request.get_data()
         logger.debug(data)
 
@@ -57,6 +62,31 @@ class Server:
         # Publish to broker
         self.producer.produce(
             "createjob",
+            data,
+        )
+
+        return Response(
+            response=json.dumps({"result": "Suceeded."}),
+            status=202,
+            mimetype="application/json",
+        )
+
+    def update(
+        self,
+    ):
+        data = request.get_data()
+        logger.debug(data)
+
+        if not data:
+            return Response(
+                response=json.dumps({"result": "Failed."}),
+                status=400,
+                mimetype="application/json",
+            )
+
+        # Publish to broker
+        self.producer.produce(
+            "updatejob",
             data,
         )
 

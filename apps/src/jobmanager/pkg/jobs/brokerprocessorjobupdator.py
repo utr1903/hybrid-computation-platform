@@ -6,13 +6,13 @@ from datetime import datetime
 from pkg.database.database import Database
 from pkg.cache.cache import Cache
 from pkg.broker.consumer import BrokerConsumer
-from pkg.data.jobs import JobCreateRequestDto, JobDataObject
+from pkg.data.jobs import JobCreateRequestDto, JobUpdateRequestDto, JobDataObject
 from pkg.jobs.brokerprocessor import BrokerProcessor
 
 logger = logging.getLogger(__name__)
 
 
-class BrokerProcessorJobCreator(BrokerProcessor):
+class BrokerProcessorJobUpdator(BrokerProcessor):
     def __init__(
         self,
         database: Database,
@@ -29,7 +29,7 @@ class BrokerProcessorJobCreator(BrokerProcessor):
         self.establishConnections()
 
         self.brokerConsumer.consume(
-            self.processJobCreateRequest,
+            self.processJobUpdateRequest,
         )
 
     def establishConnections(
@@ -39,7 +39,7 @@ class BrokerProcessorJobCreator(BrokerProcessor):
         self.cache.connect()
         self.brokerConsumer.connect()
 
-    def processJobCreateRequest(
+    def processJobUpdateRequest(
         self,
         message: dict,
     ) -> None:
@@ -51,10 +51,13 @@ class BrokerProcessorJobCreator(BrokerProcessor):
             messageParsed = self.parseMessage(message)
 
             # Extract job request DTO
-            jobCreateRequestDto = self.extractJobCreateRequestDto(messageParsed)
+            jobUpdateRequestDto = self.extractJobUpdateRequestDto(messageParsed)
+
+            # Get job from individual job collection
+            job = self.getJobFromIndividualJobCollection(jobUpdateRequestDto)
 
             # Create job data object
-            jobDataObject = self.createJobDataObject(jobCreateRequestDto)
+            jobDataObject = self.createJobDataObject(job, jobUpdateRequestDto)
 
             # Process individual job collection
             self.processIndividualJobCollection(jobDataObject)
@@ -103,58 +106,70 @@ class BrokerProcessorJobCreator(BrokerProcessor):
 
         logger.info("Message validation succeeded.")
 
-    def extractJobCreateRequestDto(
+    def extractJobUpdateRequestDto(
         self,
         message: dict,
-    ) -> JobCreateRequestDto:
+    ) -> JobUpdateRequestDto:
 
-        return JobCreateRequestDto(
+        return JobUpdateRequestDto(
             organizationId=message.get("organizationId"),
+            jobId=message.get("jobId"),
             jobName=message.get("jobName"),
-            timestampRequest=message.get("timestampRequest"),
+            jobStatus=message.get("jobStatus"),
         )
+
+    def getJobFromIndividualJobCollection(
+        self,
+        jobUpdateRequestDto: JobUpdateRequestDto,
+    ) -> dict:
+        logger.info(f"Getting job [{jobUpdateRequestDto.jobId}]...")
+        job = self.database.findMany(
+            databaseName=jobUpdateRequestDto.organizationId,
+            collectionName=jobUpdateRequestDto.jobId,
+            query={},
+            sort=[("jobVersion", -1)],
+            limit=1,
+        )
+        if job is None:
+            msg = f"Job [{jobUpdateRequestDto.jobId}] not found."
+            logger.error(msg)
+            raise Exception(msg)
+
+        logger.info(f"Getting job [{jobUpdateRequestDto.jobId}] succeeded.")
+        return job[0]
 
     def createJobDataObject(
         self,
-        jobRequestDto: JobCreateRequestDto,
+        job: dict,
+        jobRequestDto: JobUpdateRequestDto,
     ) -> JobDataObject:
+        jobName = (
+            jobRequestDto.jobName
+            if jobRequestDto.jobName is not None
+            else job.get("jobName")
+        )
+
+        jobStatus = jobRequestDto.jobStatus
+        if jobRequestDto.jobStatus != "SUBMITTED":
+            jobStatus = "UPDATED"
+
         return JobDataObject(
             organizationId=jobRequestDto.organizationId,
-            jobId=str(uuid.uuid4()),
-            jobName=jobRequestDto.jobName,
-            jobVersion=1,
-            jobStatus="CREATED",
-            timestampRequest=jobRequestDto.timestampRequest,
-            timestampCreate=datetime.now().timestamp(),
-            timestampUpdate=None,
+            jobId=job.get("jobId"),
+            jobName=jobName,
+            jobVersion=job.get("jobVersion") + 1,
+            jobStatus=jobStatus,
+            timestampRequest=job.get("timestampRequest"),
+            timestampCreate=job.get("timestampCreate"),
+            timestampUpdate=datetime.now().timestamp(),
         )
 
     def processIndividualJobCollection(
         self,
         jobDataObject: JobDataObject,
     ):
-        # Create individual job collection
-        self.createIndividualJobCollection(jobDataObject)
-
         # Add job to individual job collection
         self.addJobToIndividualJobCollection(jobDataObject)
-
-    def createIndividualJobCollection(
-        self,
-        jobDataObject: JobDataObject,
-    ):
-        databaseName = jobDataObject.organizationId
-        collectionName = jobDataObject.jobId
-
-        logger.info(f"Creating collection [{collectionName}]...")
-        self.database.createCollection(databaseName, collectionName)
-        self.database.createIndexOnCollection(
-            databaseName=databaseName,
-            collectionName=collectionName,
-            indexKey="jobVersion",
-            isUnique=True,
-        )
-        logger.info(f"Creating collection [{collectionName}] succeeded.")
 
     def addJobToIndividualJobCollection(
         self,
@@ -175,7 +190,7 @@ class BrokerProcessorJobCreator(BrokerProcessor):
     ) -> None:
 
         # Check to all jobs collection
-        self.addJobToAllJobsCollection(
+        self.updateJobInAllJobsCollection(
             jobDataObject,
         )
 
@@ -185,18 +200,19 @@ class BrokerProcessorJobCreator(BrokerProcessor):
         # Set jobs in cache
         self.setAllJobsInCache(jobs)
 
-    def addJobToAllJobsCollection(
+    def updateJobInAllJobsCollection(
         self,
         jobDataObject: JobDataObject,
     ) -> None:
 
-        logger.info(f"Inserting job [{jobDataObject.jobId}]...")
-        self.database.insert(
+        logger.info(f"Updating job [{jobDataObject.jobId}]...")
+        self.database.update(
             databaseName=jobDataObject.organizationId,
             collectionName="jobs",
-            request=jobDataObject.toDict(),
+            filter={"jobId": jobDataObject.jobId},
+            update={"$set": jobDataObject.toDict()},
         )
-        logger.info(f"Inserting job [{jobDataObject.jobId}] succeeded.")
+        logger.info(f"Updating job [{jobDataObject.jobId}] succeeded.")
 
     def getAllJobs(
         self,
@@ -207,6 +223,7 @@ class BrokerProcessorJobCreator(BrokerProcessor):
             databaseName=databaseName,
             collectionName="jobs",
             query={},
+            sort=None,
             limit=100,
         )
         logger.info(f"Getting all jobs succeeded.")

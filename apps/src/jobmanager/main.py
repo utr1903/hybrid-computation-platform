@@ -6,10 +6,11 @@ from pkg.server.server import Server
 from pkg.broker.kafkaconsumer import BrokerConsumerKafka
 from pkg.database.mongodb import DatabaseMongoDb
 from pkg.cache.redis import CacheRedis
-from pkg.jobs.brokerprocessorjobcreator import BrokerProcessorJobCreator
 from pkg.jobs.brokerprocessorjobscollectioncreator import (
     BrokerProcessorJobsCollectionCreator,
 )
+from pkg.jobs.brokerprocessorjobcreator import BrokerProcessorJobCreator
+from pkg.jobs.brokerprocessorjobupdator import BrokerProcessorJobUpdator
 from pkg.jobs.manager import JobManager
 
 
@@ -80,11 +81,33 @@ def processJobRequests(
         ),
     )
 
+    # Instantiate broker processor for creating jobs
+    brokerProcessorJobUpdator = BrokerProcessorJobUpdator(
+        database=DatabaseMongoDb(
+            masterAddress=databaseMasterAddress,
+            slaveAddress=databaseSlaveAddress,
+            username=databaseUsername,
+            password=databasePassword,
+        ),
+        cache=CacheRedis(
+            masterAddress=cacheMasterAddress,
+            slaveAddress=cacheSlaveAddress,
+            port=int(cachePort),
+            password=cachePassword,
+        ),
+        brokerConsumer=BrokerConsumerKafka(
+            bootstrapServers=brokerAddress,
+            topic="updatejob",
+            consumerGroupId="jobmanager",
+        ),
+    )
+
     # Run the job creator
     JobManager(
         brokerProcessors=[
             brokerProcessorJobsCollectionCreator,
             brokerProcessorJobCreator,
+            brokerProcessorJobUpdator,
         ],
     ).run()
 

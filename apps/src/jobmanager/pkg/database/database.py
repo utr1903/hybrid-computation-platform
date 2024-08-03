@@ -1,5 +1,5 @@
 import logging
-import uuid
+from typing import Tuple
 from datetime import datetime
 from abc import ABC, abstractmethod
 
@@ -75,6 +75,7 @@ class Database(ABC):
         databaseName: str,
         collectionName: str,
         query: dict,
+        sort: list[Tuple[str, int]],
         limit: int,
     ) -> list[dict] | None:
         pass
