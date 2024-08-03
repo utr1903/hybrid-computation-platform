@@ -80,13 +80,13 @@ jobvisualizerImageName="${containerRegistry}/${containerRegistryUsername}/${proj
 ### Build & Push ###
 ####################
 
-# # organizationgateway
-# docker build \
-#   --platform "linux/${platform}" \
-#   --tag "${organizationgatewayImageName}" \
-#   --build-arg="APP_NAME=${organizationgateway}" \
-#   "./${organizationgateway}"
-# docker push "${organizationgatewayImageName}"
+# organizationgateway
+docker build \
+  --platform "linux/${platform}" \
+  --tag "${organizationgatewayImageName}" \
+  --build-arg="APP_NAME=${organizationgateway}" \
+  "./${organizationgateway}"
+docker push "${organizationgatewayImageName}"
 
 # organizationmanager
 docker build \
@@ -96,26 +96,26 @@ docker build \
   "./${organizationmanager}"
 docker push "${organizationmanagerImageName}"
 
-# # jobgateway
-# docker build \
-#   --platform "linux/${platform}" \
-#   --tag "${jobgatewayImageName}" \
-#   --build-arg="APP_NAME=${jobgateway}" \
-#   "./${jobgateway}"
-# docker push "${jobgatewayImageName}"
+# jobgateway
+docker build \
+  --platform "linux/${platform}" \
+  --tag "${jobgatewayImageName}" \
+  --build-arg="APP_NAME=${jobgateway}" \
+  "./${jobgateway}"
+docker push "${jobgatewayImageName}"
 
-# # jobmanager
-# docker build \
-#   --platform "linux/${platform}" \
-#   --tag "${jobmanagerImageName}" \
-#   --build-arg="APP_NAME=${jobmanager}" \
-#   "./${jobmanager}"
-# docker push "${jobmanagerImageName}"
+# jobmanager
+docker build \
+  --platform "linux/${platform}" \
+  --tag "${jobmanagerImageName}" \
+  --build-arg="APP_NAME=${jobmanager}" \
+  "./${jobmanager}"
+docker push "${jobmanagerImageName}"
 
-# # jobvisualizer
-# docker build \
-#   --platform "linux/${platform}" \
-#   --tag "${jobvisualizerImageName}" \
-#   --build-arg="APP_NAME=${jobvisualizer}" \
-#   "./${jobvisualizer}"
-# docker push "${jobvisualizerImageName}"
+# jobvisualizer
+docker build \
+  --platform "linux/${platform}" \
+  --tag "${jobvisualizerImageName}" \
+  --build-arg="APP_NAME=${jobvisualizer}" \
+  "./${jobvisualizer}"
+docker push "${jobvisualizerImageName}"
