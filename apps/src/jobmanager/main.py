@@ -32,8 +32,6 @@ def processJobRequests(
     cachePort: str,
     cachePassword: str,
     brokerAddress: str,
-    brokerTopic: str,
-    brokerConsumerGroup: str,
 ):
     # Instantiate MongoDB database
     mongodb = DatabaseMongoDb(
@@ -54,15 +52,22 @@ def processJobRequests(
     # Instantiate Kafka consumer
     kafkaConsumer = BrokerConsumerKafka(
         bootstrapServers=brokerAddress,
-        topic=brokerTopic,
-        consumerGroupId=brokerConsumerGroup,
+        topic="organizationcreated",
+        consumerGroupId="jobmanager",
+    )
+
+    # Instantiate Kafka consumer
+    kafkaConsumer = BrokerConsumerKafka(
+        bootstrapServers=brokerAddress,
+        topic="createjob",
+        consumerGroupId="jobmanager",
     )
 
     # Run the job creator
     JobManager(
         database=mongodb,
         cache=redis,
-        brokerConsumer=kafkaConsumer,
+        brokerAddress=brokerAddress,
     ).run()
 
 
@@ -96,8 +101,6 @@ def main():
                 cfg.CACHE_PORT,
                 cfg.CACHE_PASSWORD,
                 cfg.BROKER_ADDRESS,
-                cfg.BROKER_TOPIC,
-                cfg.BROKER_CONSUMER_GROUP,
             ),
         )
     )
