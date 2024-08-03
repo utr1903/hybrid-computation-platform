@@ -26,9 +26,7 @@ spec:
             - name: LOGGING_LEVEL
               value: "{{ .Values.logs.level }}"
             - name: BROKER_ADDRESS
-              value: {{ .Values.broker.address }}
-            - name: BROKER_TOPIC
-              value: {{ .Values.broker.topic }}
+              value: {{ .Values.broker.address }} 
           ports:
             - containerPort: 8080
           resources:

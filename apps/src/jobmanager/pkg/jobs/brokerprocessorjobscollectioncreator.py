@@ -46,7 +46,7 @@ class BrokerProcessorJobsCollectionCreator(BrokerProcessor):
             logger.info(message)
 
             # Parse message
-            messageParsed = self.parseMessage(message=message)
+            messageParsed = self.parseMessage(message)
 
             # Extract organization data object
             organizationDataObject = self.extractOrganizationDataObject(messageParsed)

@@ -45,7 +45,6 @@ fi
 brokerName="kafka"
 brokerNamespace="platform"
 brokerAddress="${brokerName}.${brokerNamespace}.svc.cluster.local:9092"
-brokerTopic="jobrequest"
 
 # jobgateway
 jobgatewayName="jobgateway"
@@ -69,5 +68,4 @@ helm upgrade ${jobgatewayName} \
   --set name=${jobgatewayName} \
   --set replicas=${jobgatewayReplicas} \
   --set broker.address=${brokerAddress} \
-  --set broker.topic=${brokerTopic} \
   "./chart"
