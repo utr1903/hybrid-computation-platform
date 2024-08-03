@@ -64,7 +64,7 @@ helm upgrade ${jobgatewayName} \
   --debug \
   --create-namespace \
   --namespace=${jobgatewayNamespace} \
-  --set imageName=${gatewayImageName} \
+  --set imageName=${jobgatewayImageName} \
   --set imagePullPolicy="Always" \
   --set name=${jobgatewayName} \
   --set replicas=${jobgatewayReplicas} \
