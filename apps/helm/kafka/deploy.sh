@@ -21,7 +21,11 @@ helm upgrade ${kafkaName} \
   --namespace=${kafkaNamespace} \
   --set listeners.client.protocol=PLAINTEXT \
   --set provisioning.enabled=true \
-  --set provisioning.topics[0].name="jobrequest" \
+  --set provisioning.topics[0].name="createorganization" \
   --set provisioning.topics[0].partitions=3 \
+  --set provisioning.topics[1].name="organizationcreated" \
+  --set provisioning.topics[1].partitions=3 \
+  --set provisioning.topics[2].name="createjob" \
+  --set provisioning.topics[2].partitions=3 \
   --version "26.6.2" \
   "bitnami/kafka"

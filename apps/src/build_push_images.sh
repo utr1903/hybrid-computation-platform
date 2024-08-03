@@ -54,13 +54,25 @@ else
   fi
 fi
 
-# Services
-gateway="gateway"
+### Services ###
+
+# Organizations
+organizationgateway="organizationgateway"
+organizationmanager="organizationmanager"
+
+# Jobs
+jobgateway="jobgateway"
 jobmanager="jobmanager"
 jobvisualizer="jobvisualizer"
 
-# Images
-gatewayImageName="${containerRegistry}/${containerRegistryUsername}/${project}-${gateway}:latest"
+### Images ###
+
+# Organizations
+organizationgatewayImageName="${containerRegistry}/${containerRegistryUsername}/${project}-${organizationgateway}:latest"
+organizationmanagerImageName="${containerRegistry}/${containerRegistryUsername}/${project}-${organizationmanager}:latest"
+
+# Jobs
+jobgatewayImageName="${containerRegistry}/${containerRegistryUsername}/${project}-${jobgateway}:latest"
 jobmanagerImageName="${containerRegistry}/${containerRegistryUsername}/${project}-${jobmanager}:latest"
 jobvisualizerImageName="${containerRegistry}/${containerRegistryUsername}/${project}-${jobvisualizer}:latest"
 
@@ -68,13 +80,29 @@ jobvisualizerImageName="${containerRegistry}/${containerRegistryUsername}/${proj
 ### Build & Push ###
 ####################
 
-# gateway
+# organizationgateway
 docker build \
   --platform "linux/${platform}" \
-  --tag "${gatewayImageName}" \
-  --build-arg="APP_NAME=${gateway}" \
-  "./${gateway}"
-docker push "${gatewayImageName}"
+  --tag "${organizationgatewayImageName}" \
+  --build-arg="APP_NAME=${organizationgateway}" \
+  "./${organizationgateway}"
+docker push "${organizationgatewayImageName}"
+
+# organizationmanager
+docker build \
+  --platform "linux/${platform}" \
+  --tag "${organizationmanagerImageName}" \
+  --build-arg="APP_NAME=${organizationmanager}" \
+  "./${organizationmanager}"
+docker push "${organizationmanagerImageName}"
+
+# jobgateway
+docker build \
+  --platform "linux/${platform}" \
+  --tag "${jobgatewayImageName}" \
+  --build-arg="APP_NAME=${jobgateway}" \
+  "./${jobgateway}"
+docker push "${jobgatewayImageName}"
 
 # jobmanager
 docker build \

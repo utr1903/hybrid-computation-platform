@@ -3,14 +3,13 @@ import multiprocessing
 
 from pkg.config.config import Config
 from pkg.server.server import Server
+from pkg.broker.kafkaproducer import BrokerProducerKafka
 from pkg.broker.kafkaconsumer import BrokerConsumerKafka
 from pkg.database.mongodb import DatabaseMongoDb
-from pkg.cache.redis import CacheRedis
-from pkg.jobs.brokerprocessorjobcreator import BrokerProcessorJobCreator
-from pkg.jobs.brokerprocessorjobscollectioncreator import (
-    BrokerProcessorJobsCollectionCreator,
+from pkg.organizations.organizationcollectioncreator import (
+    OrganizationCollectionCreator,
 )
-from pkg.jobs.manager import JobManager
+from pkg.organizations.organizationcreator import OrganizationCreator
 
 
 def setLoggingLevel(
@@ -26,16 +25,31 @@ def setLoggingLevel(
         logging.basicConfig(level=logging.INFO)
 
 
-def processJobRequests(
+def initializeOrganizationsCollection(
     databaseMasterAddress: str,
     databaseSlaveAddress: str,
     databaseUsername: str,
     databasePassword: str,
-    cacheMasterAddress: str,
-    cacheSlaveAddress: str,
-    cachePort: str,
-    cachePassword: str,
+) -> bool:
+
+    # Create the organizations collection if it does not exist
+    return OrganizationCollectionCreator(
+        database=DatabaseMongoDb(
+            masterAddress=databaseMasterAddress,
+            slaveAddress=databaseSlaveAddress,
+            username=databaseUsername,
+            password=databasePassword,
+        ),
+    ).run()
+
+
+def processOrganizationRequests(
+    databaseMasterAddress: str,
+    databaseSlaveAddress: str,
+    databaseUsername: str,
+    databasePassword: str,
     brokerAddress: str,
+    brokerConsumerGroup: str,
 ):
     # Instantiate MongoDB database
     mongodb = DatabaseMongoDb(
@@ -45,42 +59,22 @@ def processJobRequests(
         password=databasePassword,
     )
 
-    # Instantiate Redis cache
-    redis = CacheRedis(
-        masterAddress=cacheMasterAddress,
-        slaveAddress=cacheSlaveAddress,
-        port=int(cachePort),
-        password=cachePassword,
+    # Instantiate Kafka producer
+    kafkaProducer = BrokerProducerKafka(
+        bootstrapServers=brokerAddress,
     )
 
-    # Instantiate broker processor for creating job collections
-    brokerProcessorJobsCollectionCreator = BrokerProcessorJobsCollectionCreator(
-        database=mongodb,
-        cache=redis,
-        brokerConsumer=BrokerConsumerKafka(
-            bootstrapServers=brokerAddress,
-            topic="organizationcreated",
-            consumerGroupId="jobmanager",
-        ),
-    )
-
-    # Instantiate broker processor for creating jobs
-    brokerProcessorJobCreator = BrokerProcessorJobCreator(
-        database=mongodb,
-        cache=redis,
-        brokerConsumer=BrokerConsumerKafka(
-            bootstrapServers=brokerAddress,
-            topic="createjob",
-            consumerGroupId="jobmanager",
-        ),
+    # Instantiate Kafka consumer
+    kafkaConsumer = BrokerConsumerKafka(
+        bootstrapServers=brokerAddress,
+        consumerGroupId=brokerConsumerGroup,
     )
 
     # Run the job creator
-    JobManager(
-        brokerProcessors=[
-            brokerProcessorJobsCollectionCreator,
-            brokerProcessorJobCreator,
-        ],
+    OrganizationCreator(
+        database=mongodb,
+        brokerProducer=kafkaProducer,
+        brokerConsumer=kafkaConsumer,
     ).run()
 
 
@@ -95,25 +89,31 @@ def main():
     cfg = Config()
     if not cfg.validate():
         logging.error("Invalid configuration.")
-        return
+        exit(1)
 
     # Set logging level
     setLoggingLevel(level=cfg.LOGGING_LEVEL)
 
+    # Create the organizations collection if it does not exist
+    if not initializeOrganizationsCollection(
+        cfg.DATABASE_MASTER_ADDRESS,
+        cfg.DATABASE_SLAVE_ADDRESS,
+        cfg.DATABASE_USERNAME,
+        cfg.DATABASE_PASSWORD,
+    ):
+        exit(1)
+
     processes: list[multiprocessing.Process] = []
     processes.append(
         multiprocessing.Process(
-            target=processJobRequests,
+            target=processOrganizationRequests,
             args=(
                 cfg.DATABASE_MASTER_ADDRESS,
                 cfg.DATABASE_SLAVE_ADDRESS,
                 cfg.DATABASE_USERNAME,
                 cfg.DATABASE_PASSWORD,
-                cfg.CACHE_MASTER_ADDRESS,
-                cfg.CACHE_SLAVE_ADDRESS,
-                cfg.CACHE_PORT,
-                cfg.CACHE_PASSWORD,
                 cfg.BROKER_ADDRESS,
+                cfg.BROKER_CONSUMER_GROUP,
             ),
         )
     )

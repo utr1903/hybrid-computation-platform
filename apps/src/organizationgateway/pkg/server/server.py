@@ -21,6 +21,7 @@ class Server:
         self.register_endpoints()
 
         self.producer = producer
+        self.PRODUCER_TOPIC_CREATE = "createorganization"
 
     def register_endpoints(
         self,
@@ -29,7 +30,7 @@ class Server:
             rule="/livez", endpoint="livez", view_func=self.livez, methods=["GET"]
         )
         self.app.add_url_rule(
-            rule="/upload", endpoint="upload", view_func=self.upload, methods=["POST"]
+            rule="/create", endpoint="create", view_func=self.create, methods=["POST"]
         )
 
     def livez(
@@ -43,7 +44,7 @@ class Server:
         )
         return resp
 
-    def upload(self):
+    def create(self):
         data = request.get_data()
         logger.debug(data)
 
@@ -55,7 +56,10 @@ class Server:
             )
 
         # Publish to broker
-        self.producer.produce(data)
+        self.producer.produce(
+            self.PRODUCER_TOPIC_CREATE,
+            data,
+        )
 
         return Response(
             response=json.dumps({"result": "Suceeded."}),

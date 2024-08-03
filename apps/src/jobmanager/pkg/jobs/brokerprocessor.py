@@ -5,11 +5,11 @@ from abc import ABC, abstractmethod
 logger = logging.getLogger(__name__)
 
 
-class BrokerProducer(ABC):
+class BrokerProcessor(ABC):
 
     @abstractmethod
-    def produce(
+    def run(
         self,
-        consumeFunction,
+        topic,
     ):
         pass

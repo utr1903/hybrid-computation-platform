@@ -5,9 +5,9 @@ mongodbName="mongodb"
 mongodbNamespace="platform"
 mongodbRootUserName="root"
 mongodbRootPassword="megasecret"
-mongodbUsername1="customerorg1"
-mongodbUserPassword1="customerorg1"
-mongodbUserDatabase1="customerorg1"
+mongodbDatabaseOrganitation="organizations"
+mongodbDatabaseOrganitationUsername="organizations"
+mongodbDatabaseOrganitationPassword="organizations"
 
 ###################
 ### Deploy Helm ###
@@ -29,8 +29,8 @@ helm upgrade ${mongodbName} \
   --set auth.enabled=true \
   --set auth.rootUser=${mongodbRootUserName} \
   --set auth.rootPassword=${mongodbRootPassword} \
-  --set auth.usernames[0]=${mongodbUsername1} \
-  --set auth.passwords[0]=${mongodbUserPassword1} \
-  --set auth.databases[0]=${mongodbUserDatabase1} \
+  --set auth.databases[0]=${mongodbDatabaseOrganitation} \
+  --set auth.usernames[0]=${mongodbDatabaseOrganitationUsername} \
+  --set auth.passwords[0]=${mongodbDatabaseOrganitationPassword} \
   --version "15.6.16" \
   "bitnami/mongodb"

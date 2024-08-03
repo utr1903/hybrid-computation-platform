@@ -33,16 +33,10 @@ spec:
               value: {{ .Values.database.username }}
             - name: DATABASE_PASSWORD
               value: {{ .Values.database.password }}
-            - name: CACHE_MASTER_ADDRESS
-              value: {{ .Values.cache.addresses.master }}
-            - name: CACHE_SLAVE_ADDRESS
-              value: {{ .Values.cache.addresses.slave }}
-            - name: CACHE_PORT
-              value: "{{ .Values.cache.port }}"
-            - name: CACHE_PASSWORD
-              value: "{{ .Values.cache.password }}"
             - name: BROKER_ADDRESS
               value: {{ .Values.broker.address }}
+            - name: BROKER_CONSUMER_GROUP
+              value: {{ .Values.broker.consumerGroup }}
           ports:
             - containerPort: 8080
           resources:

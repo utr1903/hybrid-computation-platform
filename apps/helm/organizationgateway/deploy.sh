@@ -45,29 +45,27 @@ fi
 brokerName="kafka"
 brokerNamespace="platform"
 brokerAddress="${brokerName}.${brokerNamespace}.svc.cluster.local:9092"
-brokerTopic="jobrequest"
 
-# gateway
-gatewayName="gateway"
-gatewayNamespace="jobs"
-gatewayImageName="${containerRegistry}/${containerRegistryUsername}/${project}-${gatewayName}:latest"
-gatewayReplicas=1
+# organizationgateway
+organizationgatewayName="organizationgateway"
+organizationgatewayNamespace="organizations"
+organizationgatewayImageName="${containerRegistry}/${containerRegistryUsername}/${project}-${organizationgatewayName}:latest"
+organizationgatewayReplicas=1
 
 ###################
 ### Deploy Helm ###
 ###################
 
-# gateway
-helm upgrade ${gatewayName} \
+# organizationgateway
+helm upgrade ${organizationgatewayName} \
   --install \
   --wait \
   --debug \
   --create-namespace \
-  --namespace=${gatewayNamespace} \
-  --set imageName=${gatewayImageName} \
+  --namespace=${organizationgatewayNamespace} \
+  --set imageName=${organizationgatewayImageName} \
   --set imagePullPolicy="Always" \
-  --set name=${gatewayName} \
-  --set replicas=${gatewayReplicas} \
+  --set name=${organizationgatewayName} \
+  --set replicas=${organizationgatewayReplicas} \
   --set broker.address=${brokerAddress} \
-  --set broker.topic=${brokerTopic} \
   "./chart"

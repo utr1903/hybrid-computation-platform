@@ -1,7 +1,7 @@
 ### Variables
 
 # Name
-name: jobmanager
+name: organizationmanager
 
 # Logs
 logs:
@@ -39,20 +39,11 @@ database:
   # Password
   password: "customerorg1"
 
-# Cache
-cache:
-  # Address
-  addresses:
-    # Master
-    master: "redis-master.platform.svc.cluster.local"
-    # Slave
-    slave: "redis-replicas.platform.svc.cluster.local"
-  # Port
-  port: 6379
-  # Password
-  password: "megasecret"
-
 # Broker
 broker:
   # Address
   address: "kafka.platform.svc.cluster.local:9092"
+  # Topic
+  topic: "jobs"
+  # Consumer group
+  consumerGroup: "jobrequest"

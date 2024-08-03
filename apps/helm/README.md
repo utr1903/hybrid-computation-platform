@@ -5,7 +5,9 @@ We have the following main operational components to deploy onto the cluster:
 - [`ingress-nginx`](/apps/helm/ingress-nginx/)
 - [`kafka`](/apps/helm/kafka/)
 - [`redis`](/apps/helm/redis/)
-- [`gateway`](/apps/helm/gateway/)
+- [`jobgateway`](/apps/helm/jobgateway/)
+- [`jobmanager`](/apps/helm/jobmanager/)
+- [`jobvisualizer`](/apps/helm/jobvisualizer/)
 
 ## Platform workloads
 

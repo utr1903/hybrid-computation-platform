@@ -31,8 +31,7 @@ def main():
 
     # Create Kafka producer
     kafka = BrokerProducerKafka(
-        bootstrap_servers=cfg.BROKER_ADDRESS,
-        topic=cfg.BROKER_TOPIC,
+        bootstrapServers=cfg.BROKER_ADDRESS,
     )
 
     # Create & run HTTP server
