@@ -31,7 +31,7 @@ def main():
 
     # Create Kafka producer
     kafka = BrokerProducerKafka(
-        bootstrap_servers=cfg.BROKER_ADDRESS,
+        bootstrapServers=cfg.BROKER_ADDRESS,
         topic=cfg.BROKER_TOPIC,
     )
 

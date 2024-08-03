@@ -55,7 +55,10 @@ class Server:
             )
 
         # Publish to broker
-        self.producer.produce(data)
+        self.producer.produce(
+            "createjob",
+            data,
+        )
 
         return Response(
             response=json.dumps({"result": "Suceeded."}),

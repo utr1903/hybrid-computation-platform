@@ -10,17 +10,16 @@ class BrokerProducerKafka(BrokerProducer):
 
     def __init__(
         self,
-        bootstrap_servers,
-        topic,
+        bootstrapServers: str,
     ):
-        self.topic = topic
         self.producer = KafkaProducer(
-            bootstrap_servers=bootstrap_servers,
+            bootstrap_servers=bootstrapServers,
         )
 
     def produce(
         self,
+        topic,
         data,
     ):
-        self.producer.send(self.topic, data)
+        self.producer.send(topic, data)
         self.producer.flush()
