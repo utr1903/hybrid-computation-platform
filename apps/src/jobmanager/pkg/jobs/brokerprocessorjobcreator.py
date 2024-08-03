@@ -7,11 +7,12 @@ from pkg.database.database import Database
 from pkg.cache.cache import Cache
 from pkg.broker.consumer import BrokerConsumer
 from pkg.data.jobs import JobRequestDto, JobCreationDto
+from pkg.jobs.brokerprocessor import BrokerProcessor
 
 logger = logging.getLogger(__name__)
 
 
-class BrokerProcessorJobCreator:
+class BrokerProcessorJobCreator(BrokerProcessor):
     def __init__(
         self,
         database: Database,
@@ -25,10 +26,18 @@ class BrokerProcessorJobCreator:
     def run(
         self,
     ) -> None:
+        self.establishConnections()
 
         self.brokerConsumer.consume(
             self.processJobCreateRequest,
         )
+
+    def establishConnections(
+        self,
+    ) -> None:
+        self.database.connect()
+        self.cache.connect()
+        self.brokerConsumer.connect()
 
     def processJobCreateRequest(
         self,

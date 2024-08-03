@@ -18,16 +18,23 @@ class DatabaseMongoDb(Database):
         username: str,
         password: str,
     ):
+        self.masterAddress = masterAddress
+        self.slaveAddress = slaveAddress
+        self.username = username
+        self.password = password
 
+    def connect(
+        self,
+    ) -> None:
         self.master = MongoClient(
             "mongodb://%s:%s@%s"
-            % (quote_plus(username), quote_plus(password), masterAddress)
+            % (quote_plus(self.username), quote_plus(self.password), self.masterAddress)
         )
         # self.master.admin.command('ping')
 
         self.slave = MongoClient(
             "mongodb://%s:%s@%s"
-            % (quote_plus(username), quote_plus(password), slaveAddress)
+            % (quote_plus(self.username), quote_plus(self.password), self.slaveAddress)
         )
 
     def doesCollectionExist(
