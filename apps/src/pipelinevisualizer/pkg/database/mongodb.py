@@ -17,9 +17,16 @@ class DatabaseMongoDb(Database):
         username: str,
         password: str,
     ):
+        self.slaveAddress = slaveAddress
+        self.username = username
+        self.password = password
+
+    def connect(
+        self,
+    ) -> None:
         self.slave = MongoClient(
             "mongodb://%s:%s@%s"
-            % (quote_plus(username), quote_plus(password), slaveAddress)
+            % (quote_plus(self.username), quote_plus(self.password), self.slaveAddress)
         )
 
     def findOne(
@@ -37,10 +44,12 @@ class DatabaseMongoDb(Database):
         databaseName: str,
         collectionName: str,
         query: dict,
+        sort: list[Tuple[str, int]],
         limit: int,
     ) -> list[dict] | None:
         cursor = self.slave[databaseName][collectionName].find(
             query,
+            sort=sort,
             limit=limit,
         )
 

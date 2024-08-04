@@ -12,18 +12,26 @@ class CacheRedis(Cache):
         port: int,
         password: str,
     ):
+        self.masterAddress = masterAddress
+        self.slaveAddress = slaveAddress
+        self.port = port
+        self.password = password
+
+    def connect(
+        self,
+    ) -> None:
         self.master = redis.Redis(
-            host=masterAddress,
-            port=port,
+            host=self.masterAddress,
+            port=self.port,
             db=0,
-            password=password,
+            password=self.password,
         )
 
         self.slave = redis.Redis(
-            host=slaveAddress,
-            port=port,
+            host=self.slaveAddress,
+            port=self.port,
             db=0,
-            password=password,
+            password=self.password,
         )
 
     def set(
@@ -32,9 +40,3 @@ class CacheRedis(Cache):
         value,
     ) -> None:
         self.master.set(key, value)
-
-    def get(
-        self,
-        key,
-    ) -> bytes | None:
-        return self.slave.get(key)
