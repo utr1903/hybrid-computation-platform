@@ -65,6 +65,9 @@ jobgateway="jobgateway"
 jobmanager="jobmanager"
 jobvisualizer="jobvisualizer"
 
+# Pipelines
+pipelinemanager="pipelinemanager"
+
 ### Images ###
 
 # Organizations
@@ -75,6 +78,9 @@ organizationmanagerImageName="${containerRegistry}/${containerRegistryUsername}/
 jobgatewayImageName="${containerRegistry}/${containerRegistryUsername}/${project}-${jobgateway}:latest"
 jobmanagerImageName="${containerRegistry}/${containerRegistryUsername}/${project}-${jobmanager}:latest"
 jobvisualizerImageName="${containerRegistry}/${containerRegistryUsername}/${project}-${jobvisualizer}:latest"
+
+# Pipelines
+pipelinemanagerImageName="${containerRegistry}/${containerRegistryUsername}/${project}-${pipelinemanager}:latest"
 
 ####################
 ### Build & Push ###
@@ -119,3 +125,11 @@ docker build \
   --build-arg="APP_NAME=${jobvisualizer}" \
   "./${jobvisualizer}"
 docker push "${jobvisualizerImageName}"
+
+# pipelinemanager
+docker build \
+  --platform "linux/${platform}" \
+  --tag "${pipelinemanagerImageName}" \
+  --build-arg="APP_NAME=${pipelinemanager}" \
+  "./${pipelinemanager}"
+docker push "${pipelinemanagerImageName}"
