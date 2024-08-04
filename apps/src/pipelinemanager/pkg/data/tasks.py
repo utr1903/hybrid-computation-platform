@@ -6,7 +6,7 @@ class TaskDataObject:
     organizationId: str
     jobId: str
     jobVersion: int
-    timestampSubmitted: float
+    timestampCreated: float
     taskId: str
     taskStatus: str
 
@@ -17,7 +17,7 @@ class TaskDataObject:
             "organizationId": self.organizationId,
             "jobId": self.jobId,
             "jobVersion": self.jobVersion,
-            "timestampSubmitted": self.timestampSubmitted,
+            "timestampCreated": self.timestampCreated,
             "taskId": self.taskId,
             "taskStatus": self.taskStatus,
         }
@@ -28,7 +28,7 @@ class TaskCreateRequestDto:
     organizationId: str
     jobId: str
     jobVersion: int
-    timestampSubmitted: float
+    timestampCreated: float
 
     def toDict(
         self,
@@ -37,5 +37,5 @@ class TaskCreateRequestDto:
             "organizationId": self.organizationId,
             "jobId": self.jobId,
             "jobVersion": self.jobVersion,
-            "timestampSubmitted": self.timestampSubmitted,
+            "timestampCreated": self.timestampCreated,
         }

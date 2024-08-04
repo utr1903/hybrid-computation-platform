@@ -18,6 +18,7 @@ class PipelineCollectionCreator:
     ) -> bool:
 
         try:
+            self.establishConnections()
 
             # Check if the pipelines collection exists
             collectionExists = self.doesPipelinesCollectionExist()
@@ -32,19 +33,24 @@ class PipelineCollectionCreator:
             logger.error(f"Error processing pipeline create request: {e}")
             return False
 
+    def establishConnections(
+        self,
+    ) -> None:
+        self.database.connect()
+
     def doesPipelinesCollectionExist(
         self,
     ):
         return self.database.doesCollectionExist(
             databaseName="pipelines",
-            collectionName="pipelines",
+            collectionName="tasks",
         )
 
     def createCollection(
         self,
     ):
         databaseName = "pipelines"
-        collectionName = "pipelines"
+        collectionName = "tasks"
 
         logger.info(f"Collection [{collectionName}] does not exist. Creating...")
         self.database.createCollection(databaseName, collectionName)

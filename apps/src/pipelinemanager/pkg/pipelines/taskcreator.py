@@ -1,10 +1,11 @@
+import json
 import logging
 import uuid
 
 from pkg.database.database import Database
 from pkg.cache.cache import Cache
 from pkg.broker.consumer import BrokerConsumer
-from apps.src.pipelinemanager.pkg.data.tasks import (
+from pkg.data.tasks import (
     TaskDataObject,
     TaskCreateRequestDto,
 )
@@ -29,7 +30,9 @@ class BrokerProcessorTaskCreator(BrokerProcessor):
     ) -> None:
         self.establishConnections()
 
-        self.brokerConsumer.consume(self.processTaskCreateRequest)
+        self.brokerConsumer.consume(
+            self.processTaskCreateRequest,
+        )
 
     def establishConnections(
         self,
@@ -46,17 +49,64 @@ class BrokerProcessorTaskCreator(BrokerProcessor):
         try:
             logger.info(message)
 
+            # Parse message
+            messageParsed = self.parseMessage(message)
+
             # Extract task create request DTO
-            taskCreateRequestDto = self.extractTaskCreateRequestDto(message)
+            taskCreateRequestDto = self.extractTaskCreateRequestDto(messageParsed)
 
             # Create task data object
             taskDataObject = self.createTaskDataObject(taskCreateRequestDto)
 
-            # Add task to pipelines collection
-            self.addTaskToPipelinesCollection(taskDataObject)
+            # Add task to tasks collection
+            self.addTaskToTasksCollection(taskDataObject)
 
         except Exception as e:
             logger.error(e)
+
+    def parseMessage(
+        self,
+        message,
+    ) -> dict:
+
+        logger.info("Parsing message...")
+
+        try:
+            messageParsed = json.loads(message)
+        except Exception as e:
+            logger.error(e)
+            raise Exception("Message parsing failed: {e}")
+
+        self.validateMessage(messageParsed)
+
+        return messageParsed
+
+    def validateMessage(
+        self,
+        messageParsed,
+    ) -> None:
+
+        logger.info("Validating message...")
+
+        missingFields = []
+        if "organizationId" not in messageParsed:
+            missingFields.append("organizationId")
+
+        if "jobId" not in messageParsed:
+            missingFields.append("jobId")
+
+        if "jobVersion" not in messageParsed:
+            missingFields.append("jobVersion")
+        
+        if "timestampUpdate" not in messageParsed:
+            missingFields.append("timestampUpdate")
+
+        if len(missingFields) > 0:
+            msg = f"There are missing fields which have to be defined: {missingFields}"
+            logger.error(msg)
+            raise Exception(msg)
+
+        logger.info("Message validation succeeded.")
 
     def extractTaskCreateRequestDto(
         self,
@@ -67,7 +117,7 @@ class BrokerProcessorTaskCreator(BrokerProcessor):
             organizationId=message.get("organizationId"),
             jobId=message.get("jobId"),
             jobVersion=message.get("jobVersion"),
-            timestampSubmitted=message.get("timestampSubmitted"),
+            timestampCreated=message.get("timestampUpdate"),
         )
 
     def createTaskDataObject(
@@ -78,12 +128,12 @@ class BrokerProcessorTaskCreator(BrokerProcessor):
             organizationId=taskCreateRequestDto.organizationId,
             jobId=taskCreateRequestDto.jobId,
             jobVersion=taskCreateRequestDto.jobVersion,
-            timestampSubmitted=taskCreateRequestDto.timestampSubmitted,
+            timestampCreated=taskCreateRequestDto.timestampCreated,
             taskId=str(uuid.uuid4()),
             taskStatus="CREATED",
         )
 
-    def addTaskToPipelinesCollection(
+    def addTaskToTasksCollection(
         self,
         taskDataObject: TaskDataObject,
     ) -> None:
@@ -91,7 +141,7 @@ class BrokerProcessorTaskCreator(BrokerProcessor):
         logger.info(f"Inserting task [{taskDataObject.taskId}]...")
         self.database.insert(
             databaseName="pipelines",
-            collectionName="pipelines",
+            collectionName="tasks",
             request=taskDataObject.toDict(),
         )
         logger.info(f"Inserting task [{taskDataObject.taskId}] succeeded.")
