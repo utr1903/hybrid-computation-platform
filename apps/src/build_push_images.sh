@@ -67,6 +67,7 @@ jobvisualizer="jobvisualizer"
 
 # Pipelines
 pipelinemanager="pipelinemanager"
+pipelinevisualizer="pipelinevisualizer"
 
 ### Images ###
 
@@ -81,6 +82,7 @@ jobvisualizerImageName="${containerRegistry}/${containerRegistryUsername}/${proj
 
 # Pipelines
 pipelinemanagerImageName="${containerRegistry}/${containerRegistryUsername}/${project}-${pipelinemanager}:latest"
+pipelinevisualizerImageName="${containerRegistry}/${containerRegistryUsername}/${project}-${pipelinevisualizer}:latest"
 
 ####################
 ### Build & Push ###
@@ -133,3 +135,11 @@ docker build \
   --build-arg="APP_NAME=${pipelinemanager}" \
   "./${pipelinemanager}"
 docker push "${pipelinemanagerImageName}"
+
+# pipelinevisualizer
+docker build \
+  --platform "linux/${platform}" \
+  --tag "${pipelinevisualizerImageName}" \
+  --build-arg="APP_NAME=${pipelinevisualizer}" \
+  "./${pipelinevisualizer}"
+docker push "${pipelinevisualizerImageName}"
