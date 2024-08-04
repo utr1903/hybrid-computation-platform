@@ -1,12 +1,12 @@
 import json
 import logging
-import uuid
 from datetime import datetime
 
 from pkg.database.database import Database
 from pkg.cache.cache import Cache
 from pkg.broker.consumer import BrokerConsumer
-from pkg.data.jobs import JobCreateRequestDto, JobUpdateRequestDto, JobDataObject
+from pkg.broker.producer import BrokerProducer
+from pkg.data.jobs import JobUpdateRequestDto, JobDataObject
 from pkg.jobs.brokerprocessor import BrokerProcessor
 
 logger = logging.getLogger(__name__)
@@ -18,10 +18,12 @@ class BrokerProcessorJobUpdator(BrokerProcessor):
         database: Database,
         cache: Cache,
         brokerConsumer: BrokerConsumer,
+        brokerProducer: BrokerProducer,
     ):
         self.database = database
         self.cache = cache
         self.brokerConsumer = brokerConsumer
+        self.brokerProducer = brokerProducer
 
     def run(
         self,
@@ -38,6 +40,7 @@ class BrokerProcessorJobUpdator(BrokerProcessor):
         self.database.connect()
         self.cache.connect()
         self.brokerConsumer.connect()
+        self.brokerProducer.connect()
 
     def processJobUpdateRequest(
         self,
@@ -61,6 +64,9 @@ class BrokerProcessorJobUpdator(BrokerProcessor):
 
             # Process individual job collection
             self.processIndividualJobCollection(jobDataObject)
+
+            # Publish job to broker
+            self.publishJobSubmitted(jobDataObject)
 
             # Process all jobs collection
             self.processAllJobsCollection(jobDataObject)
@@ -96,8 +102,8 @@ class BrokerProcessorJobUpdator(BrokerProcessor):
         if "organizationId" not in messageParsed:
             missingFields.append("organizationId")
 
-        if "jobName" not in messageParsed:
-            missingFields.append("jobName")
+        if "jobId" not in messageParsed:
+            missingFields.append("jobId")
 
         if len(missingFields) > 0:
             msg = f"There are missing fields which have to be defined: {missingFields}"
@@ -183,6 +189,22 @@ class BrokerProcessorJobUpdator(BrokerProcessor):
             request=jobDataObject.toDict(),
         )
         logger.info(f"Inserting job [{jobDataObject.jobId}] succeeded.")
+
+    def publishJobSubmitted(
+        self,
+        jobDataObject: JobDataObject,
+    ) -> None:
+        if jobDataObject.jobStatus == "SUBMITTED":
+            logger.info(
+                f"Publishing submitted job [{jobDataObject.jobId}] to [jobsubmitted] topic..."
+            )
+            self.brokerProducer.produce(
+                "jobsubmitted",
+                json.dumps(jobDataObject.toDict()).encode("ascii"),
+            )
+            logger.info(
+                f"Publishing submitted job [{jobDataObject.jobId}] to [jobsubmitted] topic succeeded."
+            )
 
     def processAllJobsCollection(
         self,

@@ -206,6 +206,7 @@ class BrokerProcessorJobCreator(BrokerProcessor):
         results = self.database.findMany(
             databaseName=databaseName,
             collectionName="jobs",
+            sort=None,
             query={},
             limit=100,
         )

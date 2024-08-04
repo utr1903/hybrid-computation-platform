@@ -29,5 +29,7 @@ helm upgrade ${kafkaName} \
   --set provisioning.topics[2].partitions=3 \
   --set provisioning.topics[3].name="updatejob" \
   --set provisioning.topics[3].partitions=3 \
+  --set provisioning.topics[4].name="jobsubmitted" \
+  --set provisioning.topics[4].partitions=3 \
   --version "26.6.2" \
   "bitnami/kafka"

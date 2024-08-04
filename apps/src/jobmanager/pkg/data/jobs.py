@@ -64,7 +64,7 @@ class JobDataObject:
         self,
     ):
         return {
-            "customerOrganizationId": self.organizationId,
+            "organizationId": self.organizationId,
             "jobId": self.jobId,
             "jobName": self.jobName,
             "jobStatus": self.jobStatus,

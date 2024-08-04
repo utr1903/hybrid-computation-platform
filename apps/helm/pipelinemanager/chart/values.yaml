@@ -1,0 +1,58 @@
+### Variables
+
+# Name
+name: pipelinemanager
+
+# Logs
+logs:
+  # Level
+  level: "INFO"
+
+# Replicas
+replicas: 1
+
+# Resources
+resources:
+  # Requests
+  requests:
+    # CPU
+    cpu: 20m
+    # Memory
+    memory: 50Mi
+  # Limits
+  limits:
+    # CPU
+    cpu: 800m
+    # Memory
+    memory: 1000Mi
+
+# Database
+database:
+  # Address
+  addresses:
+    # Master
+    master: "mongodb-arbiter-headless.platform.svc.cluster.local"
+    # Slave
+    slave: "mongodb-headless.platform.svc.cluster.local"
+  # Username
+  username: "customerorg1"
+  # Password
+  password: "customerorg1"
+
+# Cache
+cache:
+  # Address
+  addresses:
+    # Master
+    master: "redis-master.platform.svc.cluster.local"
+    # Slave
+    slave: "redis-replicas.platform.svc.cluster.local"
+  # Port
+  port: 6379
+  # Password
+  password: "megasecret"
+
+# Broker
+broker:
+  # Address
+  address: "kafka.platform.svc.cluster.local:9092"

@@ -137,7 +137,7 @@ class BrokerProcessorJobsCollectionCreator(BrokerProcessor):
         self.database.createIndexOnCollection(
             databaseName=databaseName,
             collectionName=collectionName,
-            indexKey="organizationId",
+            indexKey="jobId",
             isUnique=True,
         )
         logger.info(f"Creating collection [{collectionName}] succeeded.")

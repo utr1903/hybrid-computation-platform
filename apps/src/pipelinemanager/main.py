@@ -7,12 +7,11 @@ from pkg.broker.kafkaproducer import BrokerProducerKafka
 from pkg.broker.kafkaconsumer import BrokerConsumerKafka
 from pkg.database.mongodb import DatabaseMongoDb
 from pkg.cache.redis import CacheRedis
-from pkg.jobs.brokerprocessorjobscollectioncreator import (
-    BrokerProcessorJobsCollectionCreator,
+from pkg.pipelines.pipelinecollectioncreator import (
+    PipelineCollectionCreator,
 )
-from pkg.jobs.brokerprocessorjobcreator import BrokerProcessorJobCreator
-from pkg.jobs.brokerprocessorjobupdator import BrokerProcessorJobUpdator
-from pkg.jobs.manager import JobManager
+from pkg.pipelines.taskcreator import BrokerProcessorTaskCreator
+from pkg.pipelines.manager import TaskManager
 
 
 def setLoggingLevel(
@@ -28,7 +27,25 @@ def setLoggingLevel(
         logging.basicConfig(level=logging.INFO)
 
 
-def processJobRequests(
+def initializePipelinesCollection(
+    databaseMasterAddress: str,
+    databaseSlaveAddress: str,
+    databaseUsername: str,
+    databasePassword: str,
+) -> bool:
+
+    # Create the pipelines collection if it does not exist
+    return PipelineCollectionCreator(
+        database=DatabaseMongoDb(
+            masterAddress=databaseMasterAddress,
+            slaveAddress=databaseSlaveAddress,
+            username=databaseUsername,
+            password=databasePassword,
+        ),
+    ).run()
+
+
+def processPipelineRequests(
     databaseMasterAddress: str,
     databaseSlaveAddress: str,
     databaseUsername: str,
@@ -39,9 +56,8 @@ def processJobRequests(
     cachePassword: str,
     brokerAddress: str,
 ):
-
-    # Instantiate broker processor for creating job collections
-    brokerProcessorJobsCollectionCreator = BrokerProcessorJobsCollectionCreator(
+    # Instantiate broker processor for creating tasks
+    brokerProcessorTaskCreator = BrokerProcessorTaskCreator(
         database=DatabaseMongoDb(
             masterAddress=databaseMasterAddress,
             slaveAddress=databaseSlaveAddress,
@@ -56,62 +72,15 @@ def processJobRequests(
         ),
         brokerConsumer=BrokerConsumerKafka(
             bootstrapServers=brokerAddress,
-            topic="organizationcreated",
-            consumerGroupId="jobmanager",
-        ),
-    )
-
-    # Instantiate broker processor for creating jobs
-    brokerProcessorJobCreator = BrokerProcessorJobCreator(
-        database=DatabaseMongoDb(
-            masterAddress=databaseMasterAddress,
-            slaveAddress=databaseSlaveAddress,
-            username=databaseUsername,
-            password=databasePassword,
-        ),
-        cache=CacheRedis(
-            masterAddress=cacheMasterAddress,
-            slaveAddress=cacheSlaveAddress,
-            port=int(cachePort),
-            password=cachePassword,
-        ),
-        brokerConsumer=BrokerConsumerKafka(
-            bootstrapServers=brokerAddress,
-            topic="createjob",
-            consumerGroupId="jobmanager",
-        ),
-    )
-
-    # Instantiate broker processor for creating jobs
-    brokerProcessorJobUpdator = BrokerProcessorJobUpdator(
-        database=DatabaseMongoDb(
-            masterAddress=databaseMasterAddress,
-            slaveAddress=databaseSlaveAddress,
-            username=databaseUsername,
-            password=databasePassword,
-        ),
-        cache=CacheRedis(
-            masterAddress=cacheMasterAddress,
-            slaveAddress=cacheSlaveAddress,
-            port=int(cachePort),
-            password=cachePassword,
-        ),
-        brokerConsumer=BrokerConsumerKafka(
-            bootstrapServers=brokerAddress,
-            topic="updatejob",
-            consumerGroupId="jobmanager",
-        ),
-        brokerProducer=BrokerProducerKafka(
-            bootstrapServers=brokerAddress,
+            topic="jobsubmitted",
+            consumerGroupId="pipelinemanager",
         ),
     )
 
     # Run the job creator
-    JobManager(
+    TaskManager(
         brokerProcessors=[
-            brokerProcessorJobsCollectionCreator,
-            brokerProcessorJobCreator,
-            brokerProcessorJobUpdator,
+            brokerProcessorTaskCreator,
         ],
     ).run()
 
@@ -127,15 +96,24 @@ def main():
     cfg = Config()
     if not cfg.validate():
         logging.error("Invalid configuration.")
-        return
+        exit(1)
 
     # Set logging level
     setLoggingLevel(level=cfg.LOGGING_LEVEL)
 
+    # Create the pipelines collection if it does not exist
+    if not initializePipelinesCollection(
+        cfg.DATABASE_MASTER_ADDRESS,
+        cfg.DATABASE_SLAVE_ADDRESS,
+        cfg.DATABASE_USERNAME,
+        cfg.DATABASE_PASSWORD,
+    ):
+        exit(1)
+
     processes: list[multiprocessing.Process] = []
     processes.append(
         multiprocessing.Process(
-            target=processJobRequests,
+            target=processPipelineRequests,
             args=(
                 cfg.DATABASE_MASTER_ADDRESS,
                 cfg.DATABASE_SLAVE_ADDRESS,
