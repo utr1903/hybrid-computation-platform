@@ -102,8 +102,8 @@ class BrokerProcessorJobUpdator(BrokerProcessor):
         if "organizationId" not in messageParsed:
             missingFields.append("organizationId")
 
-        if "jobName" not in messageParsed:
-            missingFields.append("jobName")
+        if "jobId" not in messageParsed:
+            missingFields.append("jobId")
 
         if len(missingFields) > 0:
             msg = f"There are missing fields which have to be defined: {missingFields}"
@@ -194,7 +194,7 @@ class BrokerProcessorJobUpdator(BrokerProcessor):
         self,
         jobDataObject: JobDataObject,
     ) -> None:
-        if jobDataObject.jobStatus != "SUBMITTED":
+        if jobDataObject.jobStatus == "SUBMITTED":
             logger.info(
                 f"Publishing submitted job [{jobDataObject.jobId}] to [jobsubmitted] topic..."
             )
