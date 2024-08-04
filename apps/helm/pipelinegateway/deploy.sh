@@ -48,7 +48,7 @@ brokerAddress="${brokerName}.${brokerNamespace}.svc.cluster.local:9092"
 
 # pipelinegateway
 pipelinegatewayName="pipelinegateway"
-pipelinegatewayNamespace="jobs"
+pipelinegatewayNamespace="tasks"
 pipelinegatewayImageName="${containerRegistry}/${containerRegistryUsername}/${project}-${pipelinegatewayName}:latest"
 pipelinegatewayReplicas=1
 
