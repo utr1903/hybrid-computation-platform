@@ -3,6 +3,7 @@ import multiprocessing
 
 from pkg.config.config import Config
 from pkg.server.server import Server
+from pkg.broker.kafkaproducer import BrokerProducerKafka
 from pkg.broker.kafkaconsumer import BrokerConsumerKafka
 from pkg.database.mongodb import DatabaseMongoDb
 from pkg.cache.redis import CacheRedis
@@ -99,6 +100,9 @@ def processJobRequests(
             bootstrapServers=brokerAddress,
             topic="updatejob",
             consumerGroupId="jobmanager",
+        ),
+        brokerProducer=BrokerProducerKafka(
+            bootstrapServers=brokerAddress,
         ),
     )
 
