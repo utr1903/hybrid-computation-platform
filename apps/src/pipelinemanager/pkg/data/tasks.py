@@ -39,3 +39,20 @@ class TaskCreateRequestDto:
             "jobVersion": self.jobVersion,
             "timestampCreated": self.timestampCreated,
         }
+
+@dataclass
+class TaskUpdateRequestDto:
+    organizationId: str
+    taskId: str
+    taskStatus: str
+    timestampUpdated: float
+
+    def toDict(
+        self,
+    ):
+        return {
+            "organizationId": self.organizationId,
+            "taskId": self.taskId,
+            "taskStatus": self.taskStatus,
+            "timestampUpdated": self.timestampUpdated,
+        }
