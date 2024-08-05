@@ -75,6 +75,7 @@ def processOrganizationRequests(
     # Instantiate Kafka consumer
     kafkaConsumer = BrokerConsumerKafka(
         bootstrapServers=brokerAddress,
+        topic="createorganization",
         consumerGroupId=brokerConsumerGroup,
     )
 
