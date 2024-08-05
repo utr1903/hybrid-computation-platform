@@ -4,7 +4,7 @@ import json
 from waitress import serve
 from flask import Flask, request, Response
 
-from pkg.broker.producer import BrokerProducer
+from commons.broker.producer import BrokerProducer
 
 logger = logging.getLogger(__name__)
 
@@ -70,4 +70,14 @@ class Server:
     def run(
         self,
     ):
+        # Establish connections
+        self.establishConnections()
+
+        # Start server
+        logger.info("Starting server...")
         serve(self.app, host="0.0.0.0", port=8080)
+
+    def establishConnections(
+        self,
+    ) -> None:
+        self.producer.connect()

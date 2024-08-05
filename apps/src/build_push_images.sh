@@ -95,7 +95,7 @@ docker build \
   --platform "linux/${platform}" \
   --tag "${organizationgatewayImageName}" \
   --build-arg="APP_NAME=${organizationgateway}" \
-  "./${organizationgateway}"
+  "."
 docker push "${organizationgatewayImageName}"
 
 # organizationmanager
@@ -103,7 +103,7 @@ docker build \
   --platform "linux/${platform}" \
   --tag "${organizationmanagerImageName}" \
   --build-arg="APP_NAME=${organizationmanager}" \
-  "./${organizationmanager}"
+  "."
 docker push "${organizationmanagerImageName}"
 
 # jobgateway
@@ -111,7 +111,7 @@ docker build \
   --platform "linux/${platform}" \
   --tag "${jobgatewayImageName}" \
   --build-arg="APP_NAME=${jobgateway}" \
-  "./${jobgateway}"
+  "."
 docker push "${jobgatewayImageName}"
 
 # jobmanager
@@ -119,7 +119,7 @@ docker build \
   --platform "linux/${platform}" \
   --tag "${jobmanagerImageName}" \
   --build-arg="APP_NAME=${jobmanager}" \
-  "./${jobmanager}"
+  "."
 docker push "${jobmanagerImageName}"
 
 # jobvisualizer
@@ -127,7 +127,7 @@ docker build \
   --platform "linux/${platform}" \
   --tag "${jobvisualizerImageName}" \
   --build-arg="APP_NAME=${jobvisualizer}" \
-  "./${jobvisualizer}"
+  "."
 docker push "${jobvisualizerImageName}"
 
 # pipelinegateway
@@ -135,7 +135,7 @@ docker build \
   --platform "linux/${platform}" \
   --tag "${pipelinegatewayImageName}" \
   --build-arg="APP_NAME=${pipelinegateway}" \
-  "./${pipelinegateway}"
+  "."
 docker push "${pipelinegatewayImageName}"
 
 # pipelinemanager
@@ -143,7 +143,7 @@ docker build \
   --platform "linux/${platform}" \
   --tag "${pipelinemanagerImageName}" \
   --build-arg="APP_NAME=${pipelinemanager}" \
-  "./${pipelinemanager}"
+  "."
 docker push "${pipelinemanagerImageName}"
 
 # pipelinevisualizer
@@ -151,5 +151,5 @@ docker build \
   --platform "linux/${platform}" \
   --tag "${pipelinevisualizerImageName}" \
   --build-arg="APP_NAME=${pipelinevisualizer}" \
-  "./${pipelinevisualizer}"
+  "."
 docker push "${pipelinevisualizerImageName}"

@@ -1,6 +1,6 @@
 import logging
 
-from pkg.database.database import Database
+from commons.database.database import Database
 
 
 logger = logging.getLogger(__name__)
@@ -18,6 +18,7 @@ class PipelineCollectionCreator:
     ) -> bool:
 
         try:
+            # Establish connections
             self.establishConnections()
 
             # Check if the pipelines collection exists

@@ -2,10 +2,10 @@ import logging
 import json
 
 from waitress import serve
-from flask import Flask, request, Response
+from flask import Flask, Response
 
-from pkg.database.database import Database
-from pkg.cache.cache import Cache
+from commons.database.database import Database
+from commons.cache.cache import Cache
 
 
 logger = logging.getLogger(__name__)
@@ -126,8 +126,18 @@ class Server:
     def run(
         self,
     ):
+        # Establish connections
+        self.establishConnections()
+
+        # Start server
         logger.info("Starting server...")
         serve(self.app, host="0.0.0.0", port=8080)
+
+    def establishConnections(
+        self,
+    ) -> None:
+        self.database.connect()
+        self.cache.connect()
 
     def getJobsFromCache(
         self,

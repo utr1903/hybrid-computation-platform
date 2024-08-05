@@ -2,9 +2,9 @@ import json
 import logging
 import uuid
 
-from pkg.database.database import Database
-from pkg.broker.producer import BrokerProducer
-from pkg.broker.consumer import BrokerConsumer
+from commons.database.database import Database
+from commons.broker.producer import BrokerProducer
+from commons.broker.consumer import BrokerConsumer
 from pkg.data.organizations import (
     OrganizationDataObject,
     OrganizationCreateRequestDto,
@@ -27,8 +27,18 @@ class OrganizationCreator:
     def run(
         self,
     ) -> None:
+        # Establish connections
+        self.establishConnections()
 
+        # Consume messages
         self.brokerConsumer.consume(self.processOrganizationCreateRequest)
+
+    def establishConnections(
+        self,
+    ) -> None:
+        self.database.connect()
+        self.brokerProducer.connect()
+        self.brokerConsumer.connect()
 
     def processOrganizationCreateRequest(
         self,
@@ -38,9 +48,12 @@ class OrganizationCreator:
         try:
             logger.info(message)
 
+            # Parse message
+            messageParsed = self.parseMessage(message)
+
             # Extract organization create request DTO
             organizationCreateRequestDto = self.extractOrganizationCreateRequestDto(
-                message
+                messageParsed
             )
 
             # Create organization data object
@@ -56,6 +69,41 @@ class OrganizationCreator:
 
         except Exception as e:
             logger.error(e)
+
+    def parseMessage(
+        self,
+        message,
+    ) -> dict:
+
+        logger.info("Parsing message...")
+
+        try:
+            messageParsed = json.loads(message)
+        except Exception as e:
+            logger.error(e)
+            raise Exception("Message parsing failed: {e}")
+
+        self.validateMessage(messageParsed)
+
+        return messageParsed
+
+    def validateMessage(
+        self,
+        messageParsed,
+    ) -> None:
+
+        logger.info("Validating message...")
+
+        missingFields = []
+        if "organizationName" not in messageParsed:
+            missingFields.append("organizationName")
+
+        if len(missingFields) > 0:
+            msg = f"There are missing fields which have to be defined: {missingFields}"
+            logger.error(msg)
+            raise Exception(msg)
+
+        logger.info("Message validation succeeded.")
 
     def extractOrganizationCreateRequestDto(
         self,

@@ -1,7 +1,7 @@
 import logging
 from kafka import KafkaConsumer
 
-from pkg.broker.consumer import BrokerConsumer
+from commons.broker.consumer import BrokerConsumer
 
 logger = logging.getLogger(__name__)
 

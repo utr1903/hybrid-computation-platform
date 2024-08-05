@@ -1,10 +1,9 @@
 import json
 import logging
-import uuid
 
-from pkg.database.database import Database
-from pkg.cache.cache import Cache
-from pkg.broker.consumer import BrokerConsumer
+from commons.database.database import Database
+from commons.cache.cache import Cache
+from commons.broker.consumer import BrokerConsumer
 from pkg.data.tasks import (
     TaskDataObject,
     TaskUpdateRequestDto,
@@ -28,8 +27,10 @@ class BrokerProcessorTaskUpdator(BrokerProcessor):
     def run(
         self,
     ) -> None:
+        # Establish connections
         self.establishConnections()
 
+        # Consume messages
         self.brokerConsumer.consume(
             self.processTaskCreateRequest,
         )

@@ -1,7 +1,7 @@
 import logging
 from kafka import KafkaProducer
 
-from pkg.broker.producer import BrokerProducer
+from commons.broker.producer import BrokerProducer
 
 logger = logging.getLogger(__name__)
 

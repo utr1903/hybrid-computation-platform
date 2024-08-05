@@ -2,7 +2,7 @@ import logging
 import json
 
 from waitress import serve
-from flask import Flask, request, Response
+from flask import Flask, Response
 
 
 logger = logging.getLogger(__name__)

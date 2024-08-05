@@ -2,10 +2,9 @@ import logging
 
 from typing import Tuple
 from urllib.parse import quote_plus
-from pymongo import MongoClient, ASCENDING, DESCENDING
-from pymongo.collection import Collection
+from pymongo import MongoClient
 
-from pkg.database.database import Database
+from commons.database.database import Database
 
 logger = logging.getLogger(__name__)
 

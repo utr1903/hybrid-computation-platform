@@ -30,6 +30,8 @@ resources:
 database:
   # Address
   addresses:
+    # Master
+    master: "mongodb-headless.platform.svc.cluster.local"
     # Slave
     slave: "mongodb-headless.platform.svc.cluster.local"
   # Username

@@ -3,9 +3,9 @@ import logging
 import uuid
 from datetime import datetime
 
-from pkg.database.database import Database
-from pkg.cache.cache import Cache
-from pkg.broker.consumer import BrokerConsumer
+from commons.database.database import Database
+from commons.cache.cache import Cache
+from commons.broker.consumer import BrokerConsumer
 from pkg.data.jobs import JobCreateRequestDto, JobDataObject
 from pkg.jobs.brokerprocessor import BrokerProcessor
 
@@ -26,8 +26,10 @@ class BrokerProcessorJobCreator(BrokerProcessor):
     def run(
         self,
     ) -> None:
+        # Establish connections
         self.establishConnections()
 
+        # Consume messages
         self.brokerConsumer.consume(
             self.processJobCreateRequest,
         )

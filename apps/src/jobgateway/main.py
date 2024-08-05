@@ -1,8 +1,13 @@
+import os
+import sys
 import logging
+
+parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(parent_dir)
 
 from pkg.config.config import Config
 from pkg.server.server import Server
-from pkg.broker.kafkaproducer import BrokerProducerKafka
+from commons.broker.kafkaproducer import BrokerProducerKafka
 
 
 def setLoggingLevel(

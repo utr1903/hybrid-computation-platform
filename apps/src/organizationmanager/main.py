@@ -1,11 +1,17 @@
+import os
+import sys
 import logging
 import multiprocessing
 
+parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(parent_dir)
+
+
 from pkg.config.config import Config
 from pkg.server.server import Server
-from pkg.broker.kafkaproducer import BrokerProducerKafka
-from pkg.broker.kafkaconsumer import BrokerConsumerKafka
-from pkg.database.mongodb import DatabaseMongoDb
+from commons.broker.kafkaproducer import BrokerProducerKafka
+from commons.broker.kafkaconsumer import BrokerConsumerKafka
+from commons.database.mongodb import DatabaseMongoDb
 from pkg.organizations.organizationcollectioncreator import (
     OrganizationCollectionCreator,
 )
@@ -32,14 +38,16 @@ def initializeOrganizationsCollection(
     databasePassword: str,
 ) -> bool:
 
+    mongodb = DatabaseMongoDb(
+        masterAddress=databaseMasterAddress,
+        slaveAddress=databaseSlaveAddress,
+        username=databaseUsername,
+        password=databasePassword,
+    )
+
     # Create the organizations collection if it does not exist
     return OrganizationCollectionCreator(
-        database=DatabaseMongoDb(
-            masterAddress=databaseMasterAddress,
-            slaveAddress=databaseSlaveAddress,
-            username=databaseUsername,
-            password=databasePassword,
-        ),
+        database=mongodb,
     ).run()
 
 
@@ -67,6 +75,7 @@ def processOrganizationRequests(
     # Instantiate Kafka consumer
     kafkaConsumer = BrokerConsumerKafka(
         bootstrapServers=brokerAddress,
+        topic="createorganization",
         consumerGroupId=brokerConsumerGroup,
     )
 

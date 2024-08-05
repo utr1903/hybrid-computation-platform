@@ -2,10 +2,10 @@ import json
 import logging
 from datetime import datetime
 
-from pkg.database.database import Database
-from pkg.cache.cache import Cache
-from pkg.broker.consumer import BrokerConsumer
-from pkg.broker.producer import BrokerProducer
+from commons.database.database import Database
+from commons.cache.cache import Cache
+from commons.broker.consumer import BrokerConsumer
+from commons.broker.producer import BrokerProducer
 from pkg.data.jobs import JobUpdateRequestDto, JobDataObject
 from pkg.jobs.brokerprocessor import BrokerProcessor
 
@@ -28,8 +28,10 @@ class BrokerProcessorJobUpdator(BrokerProcessor):
     def run(
         self,
     ) -> None:
+        # Establish connections
         self.establishConnections()
 
+        # Consume messages
         self.brokerConsumer.consume(
             self.processJobUpdateRequest,
         )

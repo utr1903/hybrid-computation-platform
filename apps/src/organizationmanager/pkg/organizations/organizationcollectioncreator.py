@@ -1,6 +1,6 @@
 import logging
 
-from pkg.database.database import Database
+from commons.database.database import Database
 
 
 logger = logging.getLogger(__name__)
@@ -18,6 +18,8 @@ class OrganizationCollectionCreator:
     ) -> bool:
 
         try:
+            # Establish connections
+            self.establishConnections()
 
             # Check if the organizations collection exists
             collectionExists = self.doesOrganizationsCollectionExist()
@@ -31,6 +33,11 @@ class OrganizationCollectionCreator:
         except Exception as e:
             logger.error(f"Error processing organization create request: {e}")
             return False
+
+    def establishConnections(
+        self,
+    ) -> None:
+        self.database.connect()
 
     def doesOrganizationsCollectionExist(
         self,

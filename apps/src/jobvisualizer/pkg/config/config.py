@@ -9,6 +9,7 @@ class Config:
         self.LOGGING_LEVEL = os.getenv("LOGGING_LEVEL")
 
         # Database parameters
+        self.DATABASE_MASTER_ADDRESS = os.getenv("DATABASE_MASTER_ADDRESS")
         self.DATABASE_SLAVE_ADDRESS = os.getenv("DATABASE_SLAVE_ADDRESS")
         self.DATABASE_USERNAME = os.getenv("DATABASE_USERNAME")
         self.DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD")
@@ -26,6 +27,8 @@ class Config:
             return False
 
         # Validate database parameters
+        if not self.DATABASE_MASTER_ADDRESS:
+            return False
         if not self.DATABASE_SLAVE_ADDRESS:
             return False
         if not self.DATABASE_USERNAME:

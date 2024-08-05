@@ -1,5 +1,4 @@
 import logging
-import uuid
 from datetime import datetime
 from abc import ABC, abstractmethod
 
@@ -8,6 +7,12 @@ logger = logging.getLogger(__name__)
 
 
 class Database(ABC):
+
+    @abstractmethod
+    def connect(
+        self,
+    ) -> None:
+        pass
 
     @abstractmethod
     def doesCollectionExist(

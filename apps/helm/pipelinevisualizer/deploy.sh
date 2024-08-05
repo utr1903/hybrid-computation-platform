@@ -44,6 +44,7 @@ fi
 # database
 databaseName="mongodb"
 databaseNamespace="platform"
+databaseAddressMaster="${databaseName}-headless.${databaseNamespace}.svc.cluster.local"
 databaseAddressSlave="${databaseName}-headless.${databaseNamespace}.svc.cluster.local"
 databaseUsername="customerorg1"
 databasePassword="customerorg1"
@@ -77,6 +78,7 @@ helm upgrade ${pipelinevisualizerName} \
   --set imagePullPolicy="Always" \
   --set name=${pipelinevisualizerName} \
   --set replicas=${pipelinevisualizerReplicas} \
+  --set database.addresses.master=${databaseAddressMaster} \
   --set database.addresses.slave=${databaseAddressSlave} \
   --set database.username="root" \
   --set database.password="megasecret" \
