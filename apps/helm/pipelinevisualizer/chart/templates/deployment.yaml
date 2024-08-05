@@ -25,6 +25,8 @@ spec:
                   fieldPath: metadata.name
             - name: LOGGING_LEVEL
               value: "{{ .Values.logs.level }}"
+            - name: DATABASE_MASTER_ADDRESS
+              value: {{ .Values.database.addresses.master }}
             - name: DATABASE_SLAVE_ADDRESS
               value: {{ .Values.database.addresses.slave }}
             - name: DATABASE_USERNAME

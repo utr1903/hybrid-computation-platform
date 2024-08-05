@@ -37,6 +37,7 @@ def main():
 
     # Instantiate MongoDB database
     mongodb = DatabaseMongoDb(
+        masterAddress=cfg.DATABASE_MASTER_ADDRESS,
         slaveAddress=cfg.DATABASE_SLAVE_ADDRESS,
         username=cfg.DATABASE_USERNAME,
         password=cfg.DATABASE_PASSWORD,
