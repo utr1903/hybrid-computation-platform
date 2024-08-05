@@ -1,9 +1,14 @@
+import os
+import sys
 import logging
+
+parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(parent_dir)
 
 from pkg.config.config import Config
 from pkg.server.server import Server
-from pkg.database.mongodb import DatabaseMongoDb
-from pkg.cache.redis import CacheRedis
+from commons.database.mongodb import DatabaseMongoDb
+from commons.cache.redis import CacheRedis
 
 
 def setLoggingLevel(
@@ -32,6 +37,7 @@ def main():
 
     # Instantiate MongoDB database
     mongodb = DatabaseMongoDb(
+        masterAddress=cfg.DATABASE_MASTER_ADDRESS,
         slaveAddress=cfg.DATABASE_SLAVE_ADDRESS,
         username=cfg.DATABASE_USERNAME,
         password=cfg.DATABASE_PASSWORD,
