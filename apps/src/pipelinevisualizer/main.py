@@ -42,7 +42,6 @@ def main():
         username=cfg.DATABASE_USERNAME,
         password=cfg.DATABASE_PASSWORD,
     )
-    mongodb.connect()
 
     # Instantiate Redis cache
     redis = CacheRedis(
@@ -51,7 +50,6 @@ def main():
         port=int(cfg.CACHE_PORT),
         password=cfg.CACHE_PASSWORD,
     )
-    redis.connect()
 
     # Create & run HTTP server
     srv = Server(

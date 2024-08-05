@@ -38,7 +38,6 @@ def main():
     kafka = BrokerProducerKafka(
         bootstrapServers=cfg.BROKER_ADDRESS,
     )
-    kafka.connect()
 
     # Create & run HTTP server
     srv = Server(

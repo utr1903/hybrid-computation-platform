@@ -24,8 +24,10 @@ class BrokerProcessorJobsCollectionCreator(BrokerProcessor):
     def run(
         self,
     ) -> None:
+        # Establish connections
         self.establishConnections()
 
+        # Consume messages
         self.brokerConsumer.consume(
             self.processJobsCollectionCreateRequest,
         )

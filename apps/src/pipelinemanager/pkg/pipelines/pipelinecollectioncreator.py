@@ -18,6 +18,7 @@ class PipelineCollectionCreator:
     ) -> bool:
 
         try:
+            # Establish connections
             self.establishConnections()
 
             # Check if the pipelines collection exists

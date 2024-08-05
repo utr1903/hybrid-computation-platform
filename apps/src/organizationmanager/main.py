@@ -38,14 +38,16 @@ def initializeOrganizationsCollection(
     databasePassword: str,
 ) -> bool:
 
+    mongodb = DatabaseMongoDb(
+        masterAddress=databaseMasterAddress,
+        slaveAddress=databaseSlaveAddress,
+        username=databaseUsername,
+        password=databasePassword,
+    )
+
     # Create the organizations collection if it does not exist
     return OrganizationCollectionCreator(
-        database=DatabaseMongoDb(
-            masterAddress=databaseMasterAddress,
-            slaveAddress=databaseSlaveAddress,
-            username=databaseUsername,
-            password=databasePassword,
-        ),
+        database=mongodb,
     ).run()
 
 

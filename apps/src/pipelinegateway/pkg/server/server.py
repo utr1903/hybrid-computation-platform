@@ -71,4 +71,14 @@ class Server:
     def run(
         self,
     ):
+        # Establish connections
+        self.establishConnections()
+
+        # Start server
+        logger.info("Starting server...")
         serve(self.app, host="0.0.0.0", port=8080)
+
+    def establishConnections(
+        self,
+    ) -> None:
+        self.producer.connect()
