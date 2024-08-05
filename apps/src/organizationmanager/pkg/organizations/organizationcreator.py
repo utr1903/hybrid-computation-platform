@@ -2,9 +2,9 @@ import json
 import logging
 import uuid
 
-from pkg.database.database import Database
-from pkg.broker.producer import BrokerProducer
-from pkg.broker.consumer import BrokerConsumer
+from commons.database.database import Database
+from commons.broker.producer import BrokerProducer
+from commons.broker.consumer import BrokerConsumer
 from pkg.data.organizations import (
     OrganizationDataObject,
     OrganizationCreateRequestDto,
@@ -27,8 +27,16 @@ class OrganizationCreator:
     def run(
         self,
     ) -> None:
+        self.establishConnections()
 
         self.brokerConsumer.consume(self.processOrganizationCreateRequest)
+
+    def establishConnections(
+        self,
+    ) -> None:
+        self.database.connect()
+        self.brokerProducer.connect()
+        self.brokerConsumer.connect()
 
     def processOrganizationCreateRequest(
         self,
