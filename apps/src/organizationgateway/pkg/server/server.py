@@ -4,7 +4,7 @@ import json
 from waitress import serve
 from flask import Flask, request, Response
 
-from pkg.broker.producer import BrokerProducer
+from commons.broker.producer import BrokerProducer
 
 logger = logging.getLogger(__name__)
 
