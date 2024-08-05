@@ -2,10 +2,10 @@ import logging
 import json
 
 from waitress import serve
-from flask import Flask, request, Response
+from flask import Flask, Response
 
-from pkg.database.database import Database
-from pkg.cache.cache import Cache
+from commons.database.database import Database
+from commons.cache.cache import Cache
 
 
 logger = logging.getLogger(__name__)
