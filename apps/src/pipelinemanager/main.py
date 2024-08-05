@@ -11,6 +11,7 @@ from pkg.pipelines.pipelinecollectioncreator import (
     PipelineCollectionCreator,
 )
 from pkg.pipelines.taskcreator import BrokerProcessorTaskCreator
+from pkg.pipelines.taskupdator import BrokerProcessorTaskUpdator
 from pkg.pipelines.manager import TaskManager
 
 
@@ -77,10 +78,32 @@ def processPipelineRequests(
         ),
     )
 
+    # Instantiate broker processor for updating tasks
+    brokerProcessorTaskUpdator = BrokerProcessorTaskUpdator(
+        database=DatabaseMongoDb(
+            masterAddress=databaseMasterAddress,
+            slaveAddress=databaseSlaveAddress,
+            username=databaseUsername,
+            password=databasePassword,
+        ),
+        cache=CacheRedis(
+            masterAddress=cacheMasterAddress,
+            slaveAddress=cacheSlaveAddress,
+            port=int(cachePort),
+            password=cachePassword,
+        ),
+        brokerConsumer=BrokerConsumerKafka(
+            bootstrapServers=brokerAddress,
+            topic="taskupdated",
+            consumerGroupId="pipelinemanager",
+        ),
+    )
+
     # Run the job creator
     TaskManager(
         brokerProcessors=[
             brokerProcessorTaskCreator,
+            brokerProcessorTaskUpdator,
         ],
     ).run()
 
