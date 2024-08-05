@@ -1,12 +1,17 @@
+import os
+import sys
 import logging
 import multiprocessing
 
+parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(parent_dir)
+
 from pkg.config.config import Config
 from pkg.server.server import Server
-from pkg.broker.kafkaproducer import BrokerProducerKafka
-from pkg.broker.kafkaconsumer import BrokerConsumerKafka
-from pkg.database.mongodb import DatabaseMongoDb
-from pkg.cache.redis import CacheRedis
+from commons.broker.kafkaproducer import BrokerProducerKafka
+from commons.broker.kafkaconsumer import BrokerConsumerKafka
+from commons.database.mongodb import DatabaseMongoDb
+from commons.cache.redis import CacheRedis
 from pkg.jobs.brokerprocessorjobscollectioncreator import (
     BrokerProcessorJobsCollectionCreator,
 )

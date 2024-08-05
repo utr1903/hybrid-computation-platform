@@ -1,6 +1,6 @@
 import redis
 
-from pkg.cache.cache import Cache
+from commons.cache.cache import Cache
 
 
 class CacheRedis(Cache):
