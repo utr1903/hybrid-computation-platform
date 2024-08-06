@@ -179,6 +179,9 @@ class BrokerProcessorJobUpdator(BrokerProcessor):
         # Add job to individual job collection
         self.addJobToIndividualJobCollection(jobDataObject)
 
+        # Add job to cache
+        self.addJobToIndividualJobCache(jobDataObject)
+
     def addJobToIndividualJobCollection(
         self,
         jobDataObject: JobDataObject,
@@ -191,6 +194,18 @@ class BrokerProcessorJobUpdator(BrokerProcessor):
             request=jobDataObject.toDict(),
         )
         logger.info(f"Inserting job [{jobDataObject.jobId}] succeeded.")
+
+    def addJobToIndividualJobCache(
+        self,
+        jobDataObject: JobDataObject,
+    ) -> None:
+
+        logger.info(f"Setting job [{jobDataObject.jobId}] in cache...")
+        self.cache.set(
+            key=f"{jobDataObject.organizationId}-{jobDataObject.jobId}",
+            value=json.dumps(jobDataObject.toDict()),
+        )
+        logger.info(f"Setting job [{jobDataObject.jobId}] in cache succeeded.")
 
     def publishJobSubmitted(
         self,
@@ -222,7 +237,7 @@ class BrokerProcessorJobUpdator(BrokerProcessor):
         jobs = self.getAllJobs(jobDataObject.organizationId)
 
         # Set jobs in cache
-        self.setAllJobsInCache(jobs)
+        self.setAllJobsInCache(jobDataObject.organizationId, jobs)
 
     def updateJobInAllJobsCollection(
         self,
@@ -253,6 +268,7 @@ class BrokerProcessorJobUpdator(BrokerProcessor):
         logger.info(f"Getting all jobs succeeded.")
 
         jobs: list[dict] = []
+        result: dict
         for result in results:
             jobs.append(
                 {
@@ -266,11 +282,12 @@ class BrokerProcessorJobUpdator(BrokerProcessor):
 
     def setAllJobsInCache(
         self,
+        organizationId: str,
         jobs: list[dict],
     ):
         logger.info(f"Setting jobs in cache.")
         self.cache.set(
-            key="jobs",
+            key=f"{organizationId}-jobs",
             value=json.dumps(jobs),
         )
         logger.info(f"Setting jobs in cache succeeded.")
