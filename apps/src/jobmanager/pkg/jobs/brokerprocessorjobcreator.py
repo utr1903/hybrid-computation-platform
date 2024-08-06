@@ -141,6 +141,9 @@ class BrokerProcessorJobCreator(BrokerProcessor):
         # Add job to individual job collection
         self.addJobToIndividualJobCollection(jobDataObject)
 
+        # Add job to cache
+        self.addJobToIndividualJobCache(jobDataObject)
+
     def createIndividualJobCollection(
         self,
         jobDataObject: JobDataObject,
@@ -148,7 +151,7 @@ class BrokerProcessorJobCreator(BrokerProcessor):
         databaseName = jobDataObject.organizationId
         collectionName = jobDataObject.jobId
 
-        logger.info(f"Creating collection [{collectionName}]...")
+        logger.info(f"Creating collection [{collectionName}] in database...")
         self.database.createCollection(databaseName, collectionName)
         self.database.createIndexOnCollection(
             databaseName=databaseName,
@@ -156,20 +159,32 @@ class BrokerProcessorJobCreator(BrokerProcessor):
             indexKey="jobVersion",
             isUnique=True,
         )
-        logger.info(f"Creating collection [{collectionName}] succeeded.")
+        logger.info(f"Creating collection [{collectionName}] in database succeeded.")
 
     def addJobToIndividualJobCollection(
         self,
         jobDataObject: JobDataObject,
     ) -> None:
 
-        logger.info(f"Inserting job [{jobDataObject.jobId}]...")
+        logger.info(f"Inserting job [{jobDataObject.jobId}] into database...")
         self.database.insert(
             databaseName=jobDataObject.organizationId,
             collectionName=jobDataObject.jobId,
             request=jobDataObject.toDict(),
         )
-        logger.info(f"Inserting job [{jobDataObject.jobId}] succeeded.")
+        logger.info(f"Inserting job [{jobDataObject.jobId}] into database succeeded.")
+
+    def addJobToIndividualJobCache(
+        self,
+        jobDataObject: JobDataObject,
+    ) -> None:
+
+        logger.info(f"Setting job [{jobDataObject.jobId}] in cache...")
+        self.cache.set(
+            key=f"{jobDataObject.organizationId}-{jobDataObject.jobId}",
+            value=json.dumps(jobDataObject.toDict()),
+        )
+        logger.info(f"Setting job [{jobDataObject.jobId}] in cache succeeded.")
 
     def processAllJobsCollection(
         self,
@@ -185,20 +200,20 @@ class BrokerProcessorJobCreator(BrokerProcessor):
         jobs = self.getAllJobs(jobDataObject.organizationId)
 
         # Set jobs in cache
-        self.setAllJobsInCache(jobs)
+        self.setAllJobsInCache(jobDataObject.organizationId, jobs)
 
     def addJobToAllJobsCollection(
         self,
         jobDataObject: JobDataObject,
     ) -> None:
 
-        logger.info(f"Inserting job [{jobDataObject.jobId}]...")
+        logger.info(f"Inserting job [{jobDataObject.jobId}] to all jobs collection...")
         self.database.insert(
             databaseName=jobDataObject.organizationId,
             collectionName="jobs",
             request=jobDataObject.toDict(),
         )
-        logger.info(f"Inserting job [{jobDataObject.jobId}] succeeded.")
+        logger.info(f"Inserting job [{jobDataObject.jobId}] to all jobs collection succeeded.")
 
     def getAllJobs(
         self,
@@ -212,9 +227,15 @@ class BrokerProcessorJobCreator(BrokerProcessor):
             query={},
             limit=100,
         )
+
+        if results is None:
+            logger.error(f"Getting all jobs failed.")
+            return []
+
         logger.info(f"Getting all jobs succeeded.")
 
         jobs: list[dict] = []
+        result: dict
         for result in results:
             jobs.append(
                 {
@@ -228,11 +249,12 @@ class BrokerProcessorJobCreator(BrokerProcessor):
 
     def setAllJobsInCache(
         self,
+        organizationId: str,
         jobs: list[dict],
     ):
         logger.info(f"Setting jobs in cache.")
         self.cache.set(
-            key="jobs",
+            key=f"{organizationId}-jobs",
             value=json.dumps(jobs),
         )
         logger.info(f"Setting jobs in cache succeeded.")

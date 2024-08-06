@@ -2,7 +2,7 @@ import logging
 import json
 
 from waitress import serve
-from flask import Flask, Response
+from flask import Flask, Response, request
 
 from commons.database.database import Database
 from commons.cache.cache import Cache
@@ -30,16 +30,22 @@ class Server:
         self,
     ):
         self.app.add_url_rule(
-            rule="/livez", endpoint="livez", view_func=self.livez, methods=["GET"]
+            rule="/livez",
+            endpoint="livez",
+            view_func=self.livez,
+            methods=["GET"],
         )
 
         self.app.add_url_rule(
-            rule="/jobs", endpoint="jobs", view_func=self.listJobs, methods=["GET"]
+            rule="/list",
+            endpoint="list",
+            view_func=self.listJobs,
+            methods=["GET"],
         )
 
         self.app.add_url_rule(
-            rule="/jobs/<string:jobId>",
-            endpoint="job",
+            rule="/get/<string:jobId>",
+            endpoint="get",
             view_func=self.getJob,
             methods=["GET"],
         )
@@ -59,8 +65,17 @@ class Server:
         self,
     ):
         try:
+            # Get organization ID from query params
+            organizationId = request.args.get("organizationId")
+            if organizationId is None:
+                return Response(
+                    response="Organization is not provided.",
+                    status=401,
+                    mimetype="application/json",
+                )
+
             # Get jobs from cache
-            jobs = self.getJobsFromCache()
+            jobs = self.getJobsFromCache(organizationId)
 
             if jobs is None:
                 logger.info("No jobs are found in cache.")
@@ -69,7 +84,7 @@ class Server:
                 jobs = self.getJobsFromDatabase()
 
                 # Set jobs in cache
-                self.cache.set("jobs", jobs)
+                self.cache.set(f"{organizationId}-jobs", jobs)
 
             logger.info(json.loads(jobs))
 
@@ -81,18 +96,25 @@ class Server:
             return resp
         except Exception as e:
             logger.error(e)
-            resp = Response(
+            return Response(
                 response=e,
                 status=500,
                 mimetype="application/json",
             )
-            return resp
 
     def getJob(
         self,
         jobId: str,
     ):
         try:
+            # Get organization ID from query params
+            organizationId = request.args.get("organizationId")
+            if organizationId is None:
+                return Response(
+                    response="Organization is not provided.",
+                    status=401,
+                    mimetype="application/json",
+                )
 
             # Get job from cache
             job = self.getJobFromCache(jobId)
@@ -141,15 +163,18 @@ class Server:
 
     def getJobsFromCache(
         self,
+        organizationId: str,
     ) -> bytes | None:
         logger.info("Getting jobs from cache...")
-        return self.cache.get("jobs")
+        return self.cache.get(f"{organizationId}-jobs")
 
     def getJobsFromDatabase(
         self,
+        organizationId: str,
     ) -> str | None:
+        logger.info("Getting jobs from database...")
         jobs = self.database.findMany(
-            databaseName="customerorg1",
+            databaseName=organizationId,
             collectionName="jobs",
             query={},
             limit=10,
@@ -159,17 +184,19 @@ class Server:
 
     def getJobFromCache(
         self,
+        organizationId: str,
         jobId: str,
     ) -> bytes | None:
         logger.info(f"Getting job [{jobId}] from cache...")
-        return self.cache.get(jobId)
+        return self.cache.get(f"{organizationId}-{jobId}")
 
     def getJobFromDatabase(
         self,
+        organizationId: str,
         jobId: str,
     ) -> str | None:
         result = self.database.findOne(
-            databaseName="customerorg1",
+            databaseName=organizationId,
             collectionName=jobId,
             query={
                 "jobId": jobId,
@@ -178,12 +205,12 @@ class Server:
 
         return json.dumps(
             {
-                "customerUserId": result.get("customerUserId"),
                 "jobId": result.get("jobId"),
                 "jobName": result.get("jobName"),
                 "jobStatus": result.get("jobStatus"),
                 "jobVersion": result.get("jobVersion"),
-                "jobRequestTimestamp": result.get("jobRequestTimestamp"),
-                "jobCreationTimestamp": result.get("jobCreationTimestamp"),
+                "timestampRequest": result.get("timestampRequest"),
+                "timestampCreate": result.get("timestampCreate"),
+                "timestampUpdate": result.get("timestampUpdate"),
             }
         )
