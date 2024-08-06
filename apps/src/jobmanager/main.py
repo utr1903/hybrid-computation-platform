@@ -8,6 +8,7 @@ sys.path.append(parent_dir)
 
 from pkg.config.config import Config
 from pkg.server.server import Server
+from commons.logger.logger import Logger
 from commons.broker.kafkaproducer import BrokerProducerKafka
 from commons.broker.kafkaconsumer import BrokerConsumerKafka
 from commons.database.mongodb import DatabaseMongoDb
@@ -20,20 +21,8 @@ from pkg.jobs.brokerprocessorjobupdator import BrokerProcessorJobUpdator
 from pkg.jobs.manager import JobManager
 
 
-def setLoggingLevel(
-    level,
-):
-    if level == "DEBUG":
-        logging.basicConfig(level=logging.DEBUG)
-    elif level == "INFO":
-        logging.basicConfig(level=logging.INFO)
-    elif level == "ERROR":
-        logging.basicConfig(level=logging.ERROR)
-    else:
-        logging.basicConfig(level=logging.INFO)
-
-
 def processJobRequests(
+    logLevel: str,
     databaseMasterAddress: str,
     databaseSlaveAddress: str,
     databaseUsername: str,
@@ -45,8 +34,12 @@ def processJobRequests(
     brokerAddress: str,
 ):
 
+    # Set logger
+    logger = Logger(level=logLevel)
+
     # Instantiate broker processor for creating job collections
     brokerProcessorJobsCollectionCreator = BrokerProcessorJobsCollectionCreator(
+        logger=logger,
         database=DatabaseMongoDb(
             masterAddress=databaseMasterAddress,
             slaveAddress=databaseSlaveAddress,
@@ -68,6 +61,7 @@ def processJobRequests(
 
     # Instantiate broker processor for creating jobs
     brokerProcessorJobCreator = BrokerProcessorJobCreator(
+        logger=logger,
         database=DatabaseMongoDb(
             masterAddress=databaseMasterAddress,
             slaveAddress=databaseSlaveAddress,
@@ -89,6 +83,7 @@ def processJobRequests(
 
     # Instantiate broker processor for creating jobs
     brokerProcessorJobUpdator = BrokerProcessorJobUpdator(
+        logger=logger,
         database=DatabaseMongoDb(
             masterAddress=databaseMasterAddress,
             slaveAddress=databaseSlaveAddress,
@@ -134,14 +129,12 @@ def main():
         logging.error("Invalid configuration.")
         return
 
-    # Set logging level
-    setLoggingLevel(level=cfg.LOGGING_LEVEL)
-
     processes: list[multiprocessing.Process] = []
     processes.append(
         multiprocessing.Process(
             target=processJobRequests,
             args=(
+                cfg.LOGGING_LEVEL,
                 cfg.DATABASE_MASTER_ADDRESS,
                 cfg.DATABASE_SLAVE_ADDRESS,
                 cfg.DATABASE_USERNAME,

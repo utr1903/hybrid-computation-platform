@@ -2,6 +2,7 @@ import json
 import logging
 from datetime import datetime
 
+from commons.logger.logger import Logger
 from commons.database.database import Database
 from commons.cache.cache import Cache
 from commons.broker.consumer import BrokerConsumer
@@ -9,17 +10,17 @@ from commons.broker.producer import BrokerProducer
 from pkg.data.jobs import JobUpdateRequestDto, JobDataObject
 from pkg.jobs.brokerprocessor import BrokerProcessor
 
-logger = logging.getLogger(__name__)
-
 
 class BrokerProcessorJobUpdator(BrokerProcessor):
     def __init__(
         self,
+        logger: Logger,
         database: Database,
         cache: Cache,
         brokerConsumer: BrokerConsumer,
         brokerProducer: BrokerProducer,
     ):
+        self.logger = logger
         self.database = database
         self.cache = cache
         self.brokerConsumer = brokerConsumer
@@ -50,8 +51,6 @@ class BrokerProcessorJobUpdator(BrokerProcessor):
     ) -> None:
 
         try:
-            logger.info(message)
-
             # Parse message
             messageParsed = self.parseMessage(message)
 
@@ -74,19 +73,30 @@ class BrokerProcessorJobUpdator(BrokerProcessor):
             self.processAllJobsCollection(jobDataObject)
 
         except Exception as e:
-            logger.error(e)
+            self.logger.log(
+                logging.ERROR,
+                "Error processing job update request.",
+                attrs={"error": str(e)},
+            )
 
     def parseMessage(
         self,
         message,
     ) -> dict:
 
-        logger.info("Parsing message...")
+        self.logger.log(
+            logging.INFO,
+            "Parsing message...",
+        )
 
         try:
             messageParsed = json.loads(message)
         except Exception as e:
-            logger.error(e)
+            self.logger.log(
+                logging.ERROR,
+                "Message parsing failed.",
+                attrs={"error": str(e)},
+            )
             raise Exception("Message parsing failed: {e}")
 
         self.validateMessage(messageParsed)
@@ -98,7 +108,10 @@ class BrokerProcessorJobUpdator(BrokerProcessor):
         messageParsed,
     ) -> None:
 
-        logger.info("Validating message...")
+        self.logger.log(
+            logging.INFO,
+            "Validating message...",
+        )
 
         missingFields = []
         if "organizationId" not in messageParsed:
@@ -109,10 +122,19 @@ class BrokerProcessorJobUpdator(BrokerProcessor):
 
         if len(missingFields) > 0:
             msg = f"There are missing fields which have to be defined: {missingFields}"
-            logger.error(msg)
+            self.logger.log(
+                logging.ERROR,
+                msg,
+                attrs={
+                    "missingFields": ",".join(map(str, missingFields)),
+                },
+            )
             raise Exception(msg)
 
-        logger.info("Message validation succeeded.")
+        self.logger.log(
+            logging.INFO,
+            "Message validation succeeded.",
+        )
 
     def extractJobUpdateRequestDto(
         self,
@@ -130,7 +152,10 @@ class BrokerProcessorJobUpdator(BrokerProcessor):
         self,
         jobUpdateRequestDto: JobUpdateRequestDto,
     ) -> dict:
-        logger.info(f"Getting job [{jobUpdateRequestDto.jobId}]...")
+        self.logger.log(
+            logging.INFO,
+            f"Getting job [{jobUpdateRequestDto.jobId}]...",
+        )
         job = self.database.findMany(
             databaseName=jobUpdateRequestDto.organizationId,
             collectionName=jobUpdateRequestDto.jobId,
@@ -140,10 +165,16 @@ class BrokerProcessorJobUpdator(BrokerProcessor):
         )
         if job is None:
             msg = f"Job [{jobUpdateRequestDto.jobId}] not found."
-            logger.error(msg)
+            self.logger.log(
+                logging.ERROR,
+                msg,
+            )
             raise Exception(msg)
 
-        logger.info(f"Getting job [{jobUpdateRequestDto.jobId}] succeeded.")
+        self.logger.log(
+            logging.INFO,
+            f"Getting job [{jobUpdateRequestDto.jobId}] succeeded.",
+        )
         return job[0]
 
     def createJobDataObject(
@@ -187,40 +218,54 @@ class BrokerProcessorJobUpdator(BrokerProcessor):
         jobDataObject: JobDataObject,
     ) -> None:
 
-        logger.info(f"Inserting job [{jobDataObject.jobId}]...")
+        self.logger.log(
+            logging.INFO,
+            f"Inserting job [{jobDataObject.jobId}]...",
+        )
         self.database.insert(
             databaseName=jobDataObject.organizationId,
             collectionName=jobDataObject.jobId,
             request=jobDataObject.toDict(),
         )
-        logger.info(f"Inserting job [{jobDataObject.jobId}] succeeded.")
+        self.logger.log(
+            logging.INFO,
+            f"Inserting job [{jobDataObject.jobId}] succeeded.",
+        )
 
     def addJobToIndividualJobCache(
         self,
         jobDataObject: JobDataObject,
     ) -> None:
 
-        logger.info(f"Setting job [{jobDataObject.jobId}] in cache...")
+        self.logger.log(
+            logging.INFO,
+            f"Setting job [{jobDataObject.jobId}] in cache...",
+        )
         self.cache.set(
             key=f"{jobDataObject.organizationId}-{jobDataObject.jobId}",
             value=json.dumps(jobDataObject.toDict()),
         )
-        logger.info(f"Setting job [{jobDataObject.jobId}] in cache succeeded.")
+        self.logger.log(
+            logging.INFO,
+            f"Setting job [{jobDataObject.jobId}] in cache succeeded.",
+        )
 
     def publishJobSubmitted(
         self,
         jobDataObject: JobDataObject,
     ) -> None:
         if jobDataObject.jobStatus == "SUBMITTED":
-            logger.info(
-                f"Publishing submitted job [{jobDataObject.jobId}] to [jobsubmitted] topic..."
+            self.logger.log(
+                logging.INFO,
+                f"Publishing submitted job [{jobDataObject.jobId}] to [jobsubmitted] topic...",
             )
             self.brokerProducer.produce(
                 "jobsubmitted",
                 json.dumps(jobDataObject.toDict()).encode("ascii"),
             )
-            logger.info(
-                f"Publishing submitted job [{jobDataObject.jobId}] to [jobsubmitted] topic succeeded."
+            self.logger.log(
+                logging.INFO,
+                f"Publishing submitted job [{jobDataObject.jobId}] to [jobsubmitted] topic succeeded.",
             )
 
     def processAllJobsCollection(
@@ -244,20 +289,29 @@ class BrokerProcessorJobUpdator(BrokerProcessor):
         jobDataObject: JobDataObject,
     ) -> None:
 
-        logger.info(f"Updating job [{jobDataObject.jobId}]...")
+        self.logger.log(
+            logging.INFO,
+            f"Updating job [{jobDataObject.jobId}]...",
+        )
         self.database.update(
             databaseName=jobDataObject.organizationId,
             collectionName="jobs",
             filter={"jobId": jobDataObject.jobId},
             update={"$set": jobDataObject.toDict()},
         )
-        logger.info(f"Updating job [{jobDataObject.jobId}] succeeded.")
+        self.logger.log(
+            logging.INFO,
+            f"Updating job [{jobDataObject.jobId}] succeeded.",
+        )
 
     def getAllJobs(
         self,
         databaseName: str,
     ):
-        logger.info(f"Getting all jobs...")
+        self.logger.log(
+            logging.INFO,
+            f"Getting all jobs...",
+        )
         results = self.database.findMany(
             databaseName=databaseName,
             collectionName="jobs",
@@ -265,7 +319,10 @@ class BrokerProcessorJobUpdator(BrokerProcessor):
             sort=None,
             limit=100,
         )
-        logger.info(f"Getting all jobs succeeded.")
+        self.logger.log(
+            logging.INFO,
+            f"Getting all jobs succeeded.",
+        )
 
         jobs: list[dict] = []
         result: dict
@@ -285,9 +342,15 @@ class BrokerProcessorJobUpdator(BrokerProcessor):
         organizationId: str,
         jobs: list[dict],
     ):
-        logger.info(f"Setting jobs in cache.")
+        self.logger.log(
+            logging.INFO,
+            f"Setting jobs in cache.",
+        )
         self.cache.set(
             key=f"{organizationId}-jobs",
             value=json.dumps(jobs),
         )
-        logger.info(f"Setting jobs in cache succeeded.")
+        self.logger.log(
+            logging.INFO,
+            f"Setting jobs in cache succeeded.",
+        )

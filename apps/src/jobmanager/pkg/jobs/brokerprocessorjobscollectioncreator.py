@@ -1,22 +1,23 @@
 import json
 import logging
 
+from commons.logger.logger import Logger
 from commons.database.database import Database
 from commons.cache.cache import Cache
 from commons.broker.consumer import BrokerConsumer
 from pkg.data.jobs import OrganizationDataObject
 from pkg.jobs.brokerprocessor import BrokerProcessor
 
-logger = logging.getLogger(__name__)
-
 
 class BrokerProcessorJobsCollectionCreator(BrokerProcessor):
     def __init__(
         self,
+        logger: Logger,
         database: Database,
         cache: Cache,
         brokerConsumer: BrokerConsumer,
     ):
+        self.logger = logger
         self.database = database
         self.cache = cache
         self.brokerConsumer = brokerConsumer
@@ -45,8 +46,6 @@ class BrokerProcessorJobsCollectionCreator(BrokerProcessor):
     ) -> None:
 
         try:
-            logger.info(message)
-
             # Parse message
             messageParsed = self.parseMessage(message)
 
@@ -64,24 +63,36 @@ class BrokerProcessorJobsCollectionCreator(BrokerProcessor):
                     organizationDataObject.organizationId,
                 )
             else:
-                logger.warning(
-                    f"Collection [jobs] in database [{organizationDataObject.organizationId}] already exists."
+                self.logger.log(
+                    logging.WARNING,
+                    f"Collection [jobs] in database [{organizationDataObject.organizationId}] already exists.",
                 )
 
         except Exception as e:
-            logger.error(f"Error processing jobs collection creation: {e}")
+            self.logger.log(
+                logging.ERROR,
+                f"Error processing jobs collection creation.",
+                attrs={"error": str(e)},
+            )
 
     def parseMessage(
         self,
         message,
     ) -> dict:
 
-        logger.info("Parsing message...")
+        self.logger.log(
+            logging.INFO,
+            "Parsing message...",
+        )
 
         try:
             messageParsed = json.loads(message)
         except Exception as e:
-            logger.error(e)
+            self.logger.log(
+                logging.ERROR,
+                "Message parsing failed.",
+                attrs={"error": str(e)},
+            )
             raise Exception("Message parsing failed: {e}")
 
         self.validateMessage(messageParsed)
@@ -93,7 +104,10 @@ class BrokerProcessorJobsCollectionCreator(BrokerProcessor):
         messageParsed,
     ) -> None:
 
-        logger.info("Validating message...")
+        self.logger.log(
+            logging.INFO,
+            "Validating message...",
+        )
 
         missingFields = []
         if "organizationId" not in messageParsed:
@@ -103,11 +117,20 @@ class BrokerProcessorJobsCollectionCreator(BrokerProcessor):
             missingFields.append("organizationName")
 
         if len(missingFields) > 0:
-            msg = f"There are missing fields which have to be defined: {missingFields}"
-            logger.error(msg)
+            msg = "There are missing fields which have to be defined."
+            self.logger.log(
+                logging.ERROR,
+                msg,
+                attrs={
+                    "missingFields": ",".join(map(str, missingFields)),
+                },
+            )
             raise Exception(msg)
 
-        logger.info("Message validation succeeded.")
+        self.logger.log(
+            logging.INFO,
+            "Message validation succeeded.",
+        )
 
     def extractOrganizationDataObject(
         self,
@@ -134,7 +157,10 @@ class BrokerProcessorJobsCollectionCreator(BrokerProcessor):
     ):
         collectionName = "jobs"
 
-        logger.info(f"Collection [{collectionName}] does not exist. Creating...")
+        self.logger.log(
+            logging.INFO,
+            f"Collection [{collectionName}] does not exist. Creating...",
+        )
         self.database.createCollection(databaseName, collectionName)
         self.database.createIndexOnCollection(
             databaseName=databaseName,
@@ -142,4 +168,7 @@ class BrokerProcessorJobsCollectionCreator(BrokerProcessor):
             indexKey="jobId",
             isUnique=True,
         )
-        logger.info(f"Creating collection [{collectionName}] succeeded.")
+        self.logger.log(
+            logging.INFO,
+            f"Creating collection [{collectionName}] succeeded.",
+        )
