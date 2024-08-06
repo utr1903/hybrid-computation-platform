@@ -4,20 +4,20 @@ import json
 from waitress import serve
 from flask import Flask, Response, request
 
+from commons.logger.logger import Logger
 from commons.database.database import Database
 from commons.cache.cache import Cache
-
-
-logger = logging.getLogger(__name__)
 
 
 class Server:
 
     def __init__(
         self,
+        logger: Logger,
         database: Database,
         cache: Cache,
     ):
+        self.logger = logger
         self.app = Flask(__name__)
         self.app.debug = True
         self.app.use_reloader = False
@@ -78,15 +78,16 @@ class Server:
             jobs = self.getJobsFromCache(organizationId)
 
             if jobs is None:
-                logger.info("No jobs are found in cache.")
+                self.logger.log(
+                    logging.INFO,
+                    "No jobs are found in cache.",
+                )
 
                 # Get jobs from database
                 jobs = self.getJobsFromDatabase(organizationId)
 
                 # Set jobs in cache
                 self.cache.set(f"{organizationId}-jobs", jobs)
-
-            logger.info(json.loads(jobs))
 
             resp = Response(
                 response=jobs,
@@ -95,7 +96,13 @@ class Server:
             )
             return resp
         except Exception as e:
-            logger.error(e)
+            self.logger.log(
+                logging.ERROR,
+                "Error processing list jobs request.",
+                attrs={
+                    "error": str(e),
+                },
+            )
             return Response(
                 response=e,
                 status=500,
@@ -128,15 +135,16 @@ class Server:
             job = self.getJobFromCache(organizationId, jobId)
 
             if job is None:
-                logger.info(f"Job [{jobId}] not found in cache.")
+                self.logger.log(
+                    logging.INFO,
+                    f"Job [{jobId}] not found in cache.",
+                )
 
                 # Get job from database
                 job = self.getJobFromDatabase(organizationId, jobId)
 
                 # Set job in cache
                 self.cache.set(jobId, job)
-
-            logger.info(json.loads(job))
 
             return Response(
                 response=job,
@@ -145,7 +153,13 @@ class Server:
             )
 
         except Exception as e:
-            logger.error(e)
+            self.logger.log(
+                logging.ERROR,
+                "Error processing list jobs request.",
+                attrs={
+                    "error": str(e),
+                },
+            )
             return Response(
                 response=e,
                 status=500,
@@ -159,7 +173,10 @@ class Server:
         self.establishConnections()
 
         # Start server
-        logger.info("Starting server...")
+        self.logger.log(
+            logging.INFO,
+            "Starting server...",
+        )
         serve(self.app, host="0.0.0.0", port=8080)
 
     def establishConnections(
@@ -172,14 +189,20 @@ class Server:
         self,
         organizationId: str,
     ) -> bytes | None:
-        logger.info("Getting jobs from cache...")
+        self.logger.log(
+            logging.INFO,
+            "Getting jobs from cache...",
+        )
         return self.cache.get(f"{organizationId}-jobs")
 
     def getJobsFromDatabase(
         self,
         organizationId: str,
     ) -> str | None:
-        logger.info("Getting jobs from database...")
+        self.logger.log(
+            logging.INFO,
+            "Getting jobs from database...",
+        )
         jobs = self.database.findMany(
             databaseName=organizationId,
             collectionName="jobs",
@@ -194,7 +217,10 @@ class Server:
         organizationId: str,
         jobId: str,
     ) -> bytes | None:
-        logger.info(f"Getting job [{jobId}] from cache...")
+        self.logger.log(
+            logging.INFO,
+            f"Getting job [{jobId}] from cache...",
+        )
         return self.cache.get(f"{organizationId}-{jobId}")
 
     def getJobFromDatabase(
