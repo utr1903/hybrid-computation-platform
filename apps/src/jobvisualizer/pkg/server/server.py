@@ -18,6 +18,7 @@ class Server:
         cache: Cache,
     ):
         self.logger = logger
+
         self.app = Flask(__name__)
         self.app.debug = True
         self.app.use_reloader = False
