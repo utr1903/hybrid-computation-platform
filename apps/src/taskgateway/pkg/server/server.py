@@ -4,17 +4,19 @@ import json
 from waitress import serve
 from flask import Flask, request, Response
 
+from commons.logger.logger import Logger
 from commons.broker.producer import BrokerProducer
-
-logger = logging.getLogger(__name__)
 
 
 class Server:
 
     def __init__(
         self,
+        logger: Logger,
         producer: BrokerProducer,
     ):
+        self.logger = logger
+
         self.app = Flask(__name__)
         self.app.debug = False
         self.app.use_reloader = False
@@ -47,8 +49,6 @@ class Server:
         self,
     ):
         data = request.get_data()
-        logger.debug(data)
-
         if not data:
             return Response(
                 response=json.dumps({"result": "Failed."}),
@@ -75,7 +75,10 @@ class Server:
         self.establishConnections()
 
         # Start server
-        logger.info("Starting server...")
+        self.logger.log(
+            logging.INFO,
+            "Starting server...",
+        )
         serve(self.app, host="0.0.0.0", port=8080)
 
     def establishConnections(
