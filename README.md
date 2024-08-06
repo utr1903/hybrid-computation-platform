@@ -4,51 +4,50 @@ This repo is dedicated to showcase a commercial hybrid (cloud &amp; on-prem) cal
 
 ## Workflow
 
+Get the Kubernetes load balancer IP address:
+
+```shell
+CLUSTER_IP_ADDRESS=$(kubectl get svc -n platform ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+```
+
 Create organization:
 
 ```shell
-kubectl port-forward -n organizations svc/organizationgateway 8080
-curl -X POST "http://localhost:8080/create" -d '{"organizationName": "ORGANIZATION_NAME"}'
+curl -X POST "http://${CLUSTER_IP_ADDRESS}/organizationsgw/create" -d '{"organizationName": "ORGANIZATION_NAME"}'
 ```
 
 Create job:
 
 ```shell
-kubectl port-forward -n jobs svc/jobgateway 8080
-curl -X POST "http://localhost:8080/create" -d '{"organizationId": "ORGANIZATION_ID", "jobName": "JOB_NAME", "timestampRequest": TIMESTAMP_REQUEST}'
+curl -X POST "http://${CLUSTER_IP_ADDRESS}/jobsgw/create" -d '{"organizationId": "ORGANIZATION_ID", "jobName": "JOB_NAME", "timestampRequest": TIMESTAMP_REQUEST}'
 ```
 
 Update job:
 
 ```shell
-kubectl port-forward -n jobs svc/jobgateway 8080
-curl -X POST "http://localhost:8080/update" -d '{"organizationId": "ORGANIZATION_ID", "jobId": "JOB_NAME", "jobStatus": "SUBMITTED"}'
+curl -X POST "http://${CLUSTER_IP_ADDRESS}/jobsgw/update" -d '{"organizationId": "ORGANIZATION_ID", "jobId": "JOB_NAME", "jobStatus": "SUBMITTED"}'
 ```
 
 List jobs:
 
 ```shell
-kubectl port-forward -n jobs svc/jobvisualizer 8080
-curl -X GET "http://localhost:8080/jobs?organizationId=ORGANIZATION_ID"
+curl -X GET "http://${CLUSTER_IP_ADDRESS}/jobsviz?organizationId=ORGANIZATION_ID"
 ```
 
 Get job:
 
 ```shell
-kubectl port-forward -n jobs svc/jobvisualizer 8080
-curl -X GET "http://localhost:8080/jobs?organizationId=ORGANIZATION_ID&jobId=JOB_ID"
+curl -X GET "http://${CLUSTER_IP_ADDRESS}/jobsviz?organizationId=ORGANIZATION_ID&jobId=JOB_ID"
 ```
 
 Get task to run:
 
 ```shell
-kubectl port-forward -n tasks svc/taskvisualizer 8080
-curl -X GET "http://localhost:8080/task-to-run"
+curl -X GET "http://${CLUSTER_IP_ADDRESS}/tasksgw/task-to-run"
 ```
 
 Update task:
 
 ```shell
-kubectl port-forward -n tasks svc/taskgateway 8080
-curl -X POST "http://localhost:8080/update" -d '{"organizationId": "ORGANIZATION_ID", "taskId": "TASK_ID", "taskStatus": "TASK_STATUS", "timestampUpdated": TIMESTAMP_UPDATED}'
+curl -X POST "http://${CLUSTER_IP_ADDRESS}/tasksgw/update" -d '{"organizationId": "ORGANIZATION_ID", "taskId": "TASK_ID", "taskStatus": "TASK_STATUS", "timestampUpdated": TIMESTAMP_UPDATED}'
 ```
