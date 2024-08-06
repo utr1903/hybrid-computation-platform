@@ -44,7 +44,7 @@ class Server:
         )
 
         self.app.add_url_rule(
-            rule="/get/<string:jobId>",
+            rule="/get",
             endpoint="get",
             view_func=self.getJob,
             methods=["GET"],
@@ -69,7 +69,7 @@ class Server:
             organizationId = request.args.get("organizationId")
             if organizationId is None:
                 return Response(
-                    response="Organization is not provided.",
+                    response="Organization ID is not provided.",
                     status=401,
                     mimetype="application/json",
                 )
@@ -81,7 +81,7 @@ class Server:
                 logger.info("No jobs are found in cache.")
 
                 # Get jobs from database
-                jobs = self.getJobsFromDatabase()
+                jobs = self.getJobsFromDatabase(organizationId)
 
                 # Set jobs in cache
                 self.cache.set(f"{organizationId}-jobs", jobs)
@@ -104,46 +104,53 @@ class Server:
 
     def getJob(
         self,
-        jobId: str,
     ):
         try:
             # Get organization ID from query params
             organizationId = request.args.get("organizationId")
             if organizationId is None:
                 return Response(
-                    response="Organization is not provided.",
+                    response="Organization ID is not provided.",
                     status=401,
                     mimetype="application/json",
                 )
 
+            # Get organization ID from query params
+            jobId = request.args.get("jobId")
+            if jobId is None:
+                return Response(
+                    response="Job ID is not provided.",
+                    status=400,
+                    mimetype="application/json",
+                )
+
             # Get job from cache
-            job = self.getJobFromCache(jobId)
+            job = self.getJobFromCache(organizationId, jobId)
 
             if job is None:
                 logger.info(f"Job [{jobId}] not found in cache.")
 
                 # Get job from database
-                job = self.getJobFromDatabase(jobId)
+                job = self.getJobFromDatabase(organizationId, jobId)
 
                 # Set job in cache
                 self.cache.set(jobId, job)
 
             logger.info(json.loads(job))
 
-            resp = Response(
+            return Response(
                 response=job,
                 status=200,
                 mimetype="application/json",
             )
-            return resp
+
         except Exception as e:
             logger.error(e)
-            resp = Response(
+            return Response(
                 response=e,
                 status=500,
                 mimetype="application/json",
             )
-            return resp
 
     def run(
         self,

@@ -29,14 +29,14 @@ List jobs:
 
 ```shell
 kubectl port-forward -n jobs svc/jobvisualizer 8080
-curl -X GET "http://localhost:8080/jobs"
+curl -X GET "http://localhost:8080/jobs?organizationId=ORGANIZATION_ID"
 ```
 
 Get job:
 
 ```shell
 kubectl port-forward -n jobs svc/jobvisualizer 8080
-curl -X GET "http://localhost:8080/jobs/JOB_ID"
+curl -X GET "http://localhost:8080/jobs?organizationId=ORGANIZATION_ID&jobId=JOB_ID"
 ```
 
 Get task to run:
