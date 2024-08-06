@@ -4,20 +4,21 @@ import json
 from waitress import serve
 from flask import Flask, Response
 
+from commons.logger.logger import Logger
 from commons.database.database import Database
 from commons.cache.cache import Cache
-
-
-logger = logging.getLogger(__name__)
 
 
 class Server:
 
     def __init__(
         self,
+        logger: Logger,
         database: Database,
         cache: Cache,
     ):
+        self.logger = logger
+
         self.app = Flask(__name__)
         self.app.debug = True
         self.app.use_reloader = False
@@ -64,8 +65,6 @@ class Server:
                     mimetype="application/json",
                 )
 
-            logger.info(json.loads(task))
-
             return Response(
                 response=task,
                 status=200,
@@ -73,7 +72,11 @@ class Server:
             )
 
         except Exception as e:
-            logger.error(e)
+            self.logger.log(
+                logging.ERROR,
+                "Error getting task to run.",
+                attrs={"error": str(e)},
+            )
             resp = Response(
                 response=e,
                 status=500,
@@ -88,7 +91,10 @@ class Server:
         self.establishConnections()
 
         # Start server
-        logger.info("Starting server...")
+        self.logger.log(
+            logging.INFO,
+            "Starting server...",
+        )
         serve(self.app, host="0.0.0.0", port=8080)
 
     def establishConnections(
