@@ -1,6 +1,7 @@
 import json
 import logging
 
+from commons.logger.logger import Logger
 from commons.database.database import Database
 from commons.cache.cache import Cache
 from commons.broker.consumer import BrokerConsumer
@@ -10,16 +11,16 @@ from pkg.data.tasks import (
 )
 from pkg.tasks.brokerprocessor import BrokerProcessor
 
-logger = logging.getLogger(__name__)
-
 
 class BrokerProcessorTaskUpdator(BrokerProcessor):
     def __init__(
         self,
+        logger: Logger,
         database: Database,
         cache: Cache,
         brokerConsumer: BrokerConsumer,
     ):
+        self.logger = logger
         self.database = database
         self.cache = cache
         self.brokerConsumer = brokerConsumer
@@ -48,8 +49,6 @@ class BrokerProcessorTaskUpdator(BrokerProcessor):
     ) -> None:
 
         try:
-            logger.info(message)
-
             # Parse message
             messageParsed = self.parseMessage(message)
 
@@ -66,19 +65,27 @@ class BrokerProcessorTaskUpdator(BrokerProcessor):
             self.updateTaskInTasksCollection(taskDataObject)
 
         except Exception as e:
-            logger.error(e)
+            self.logger.log(
+                logging.ERROR,
+                "Error processing task update request.",
+                attrs={"error": str(e)},
+            )
 
     def parseMessage(
         self,
         message,
     ) -> dict:
 
-        logger.info("Parsing message...")
+        self.logger.log("Parsing message...")
 
         try:
             messageParsed = json.loads(message)
         except Exception as e:
-            logger.error(e)
+            self.logger.log(
+                logging.ERROR,
+                "Message parsing failed.",
+                attrs={"error": str(e)},
+            )
             raise Exception("Message parsing failed: {e}")
 
         self.validateMessage(messageParsed)
@@ -90,7 +97,10 @@ class BrokerProcessorTaskUpdator(BrokerProcessor):
         messageParsed,
     ) -> None:
 
-        logger.info("Validating message...")
+        self.logger.log(
+            logging.INFO,
+            "Validating message...",
+        )
 
         missingFields = []
         if "organizationId" not in messageParsed:
@@ -101,10 +111,19 @@ class BrokerProcessorTaskUpdator(BrokerProcessor):
 
         if len(missingFields) > 0:
             msg = f"There are missing fields which have to be defined: {missingFields}"
-            logger.error(msg)
+            self.logger.log(
+                logging.ERROR,
+                msg,
+                attrs={
+                    "missingFields": ",".join(map(str, missingFields)),
+                },
+            )
             raise Exception(msg)
 
-        logger.info("Message validation succeeded.")
+        self.logger.log(
+            logging.INFO,
+            "Message validation succeeded.",
+        )
 
     def extractTaskUpdateRequestDto(
         self,
@@ -122,7 +141,10 @@ class BrokerProcessorTaskUpdator(BrokerProcessor):
         self,
         taskUpdateRequestDto: TaskUpdateRequestDto,
     ) -> dict:
-        logger.info(f"Getting task [{taskUpdateRequestDto.taskId}]...")
+        self.logger.log(
+            logging.INFO,
+            f"Getting task [{taskUpdateRequestDto.taskId}]...",
+        )
         task = self.database.findOne(
             databaseName="tasks",
             collectionName="tasks",
@@ -130,10 +152,16 @@ class BrokerProcessorTaskUpdator(BrokerProcessor):
         )
         if task is None:
             msg = f"Task [{taskUpdateRequestDto.taskId}] not found."
-            logger.error(msg)
+            self.logger.log(
+                logging.ERROR,
+                msg,
+            )
             raise Exception(msg)
 
-        logger.info(f"Getting task [{taskUpdateRequestDto.taskId}] succeeded.")
+        self.logger.log(
+            logging.INFO,
+            f"Getting task [{taskUpdateRequestDto.taskId}] succeeded.",
+        )
         return task
 
     def createTaskDataObject(
@@ -155,11 +183,17 @@ class BrokerProcessorTaskUpdator(BrokerProcessor):
         taskDataObject: TaskDataObject,
     ) -> None:
 
-        logger.info(f"Updating task [{taskDataObject.taskId}]...")
+        self.logger.log(
+            logging.INFO,
+            f"Updating task [{taskDataObject.taskId}]...",
+        )
         self.database.update(
             databaseName="tasks",
             collectionName="tasks",
             filter={"taskId": taskDataObject.taskId},
             update={"$set": taskDataObject.toDict()},
         )
-        logger.info(f"Updating task [{taskDataObject.taskId}] succeeded.")
+        self.logger.log(
+            logging.INFO,
+            f"Updating task [{taskDataObject.taskId}] succeeded.",
+        )

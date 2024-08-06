@@ -2,6 +2,7 @@ import json
 import logging
 import uuid
 
+from commons.logger.logger import Logger
 from commons.database.database import Database
 from commons.cache.cache import Cache
 from commons.broker.consumer import BrokerConsumer
@@ -11,16 +12,16 @@ from pkg.data.tasks import (
 )
 from pkg.tasks.brokerprocessor import BrokerProcessor
 
-logger = logging.getLogger(__name__)
-
 
 class BrokerProcessorTaskCreator(BrokerProcessor):
     def __init__(
         self,
+        logger: Logger,
         database: Database,
         cache: Cache,
         brokerConsumer: BrokerConsumer,
     ):
+        self.logger = logger
         self.database = database
         self.cache = cache
         self.brokerConsumer = brokerConsumer
@@ -49,8 +50,6 @@ class BrokerProcessorTaskCreator(BrokerProcessor):
     ) -> None:
 
         try:
-            logger.info(message)
-
             # Parse message
             messageParsed = self.parseMessage(message)
 
@@ -64,19 +63,30 @@ class BrokerProcessorTaskCreator(BrokerProcessor):
             self.addTaskToTasksCollection(taskDataObject)
 
         except Exception as e:
-            logger.error(e)
+            self.logger.log(
+                logging.ERROR,
+                "Error processing task create request.",
+                attrs={"error": str(e)},
+            )
 
     def parseMessage(
         self,
         message,
     ) -> dict:
 
-        logger.info("Parsing message...")
+        self.logger.log(
+            logging.INFO,
+            "Parsing message...",
+        )
 
         try:
             messageParsed = json.loads(message)
         except Exception as e:
-            logger.error(e)
+            self.logger.log(
+                logging.ERROR,
+                "Message parsing failed.",
+                attrs={"error": str(e)},
+            )
             raise Exception("Message parsing failed: {e}")
 
         self.validateMessage(messageParsed)
@@ -88,7 +98,10 @@ class BrokerProcessorTaskCreator(BrokerProcessor):
         messageParsed,
     ) -> None:
 
-        logger.info("Validating message...")
+        self.logger.log(
+            logging.INFO,
+            "Validating message...",
+        )
 
         missingFields = []
         if "organizationId" not in messageParsed:
@@ -99,16 +112,25 @@ class BrokerProcessorTaskCreator(BrokerProcessor):
 
         if "jobVersion" not in messageParsed:
             missingFields.append("jobVersion")
-        
+
         if "timestampUpdate" not in messageParsed:
             missingFields.append("timestampUpdate")
 
         if len(missingFields) > 0:
             msg = f"There are missing fields which have to be defined: {missingFields}"
-            logger.error(msg)
+            self.logger.log(
+                logging.ERROR,
+                msg,
+                attrs={
+                    "missingFields": ",".join(map(str, missingFields)),
+                },
+            )
             raise Exception(msg)
 
-        logger.info("Message validation succeeded.")
+        self.logger.log(
+            logging.INFO,
+            "Message validation succeeded.",
+        )
 
     def extractTaskCreateRequestDto(
         self,
@@ -140,10 +162,16 @@ class BrokerProcessorTaskCreator(BrokerProcessor):
         taskDataObject: TaskDataObject,
     ) -> None:
 
-        logger.info(f"Inserting task [{taskDataObject.taskId}]...")
+        self.logger.log(
+            logging.INFO,
+            f"Inserting task [{taskDataObject.taskId}]...",
+        )
         self.database.insert(
             databaseName="tasks",
             collectionName="tasks",
             request=taskDataObject.toDict(),
         )
-        logger.info(f"Inserting task [{taskDataObject.taskId}] succeeded.")
+        self.logger.log(
+            logging.INFO,
+            f"Inserting task [{taskDataObject.taskId}] succeeded.",
+        )

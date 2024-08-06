@@ -1,16 +1,16 @@
 import logging
 
+from commons.logger.logger import Logger
 from commons.database.database import Database
-
-
-logger = logging.getLogger(__name__)
 
 
 class TasksCollectionCreator:
     def __init__(
         self,
+        logger: Logger,
         database: Database,
     ):
+        self.logger = logger
         self.database = database
 
     def run(
@@ -31,7 +31,11 @@ class TasksCollectionCreator:
             return True
 
         except Exception as e:
-            logger.error(f"Error processing tasks create request: {e}")
+            self.logger.log(
+                logging.ERROR,
+                f"Error processing tasks create request: {e}",
+                attrs={"error": str(e)},
+            )
             return False
 
     def establishConnections(
@@ -53,7 +57,10 @@ class TasksCollectionCreator:
         databaseName = "tasks"
         collectionName = "tasks"
 
-        logger.info(f"Collection [{collectionName}] does not exist. Creating...")
+        self.logger.log(
+            logging.INFO,
+            f"Collection [{collectionName}] does not exist. Creating...",
+        )
         self.database.createCollection(databaseName, collectionName)
         self.database.createIndexOnCollection(
             databaseName=databaseName,
@@ -61,4 +68,7 @@ class TasksCollectionCreator:
             indexKey="taskId",
             isUnique=True,
         )
-        logger.info(f"Creating collection [{collectionName}] succeeded.")
+        self.logger.log(
+            logging.INFO,
+            f"Creating collection [{collectionName}] succeeded.",
+        )
