@@ -12,12 +12,12 @@ from commons.broker.kafkaproducer import BrokerProducerKafka
 from commons.broker.kafkaconsumer import BrokerConsumerKafka
 from commons.database.mongodb import DatabaseMongoDb
 from commons.cache.redis import CacheRedis
-from pkg.pipelines.pipelinecollectioncreator import (
-    PipelineCollectionCreator,
+from pkg.tasks.taskscollectioncreator import (
+    TasksCollectionCreator,
 )
-from pkg.pipelines.taskcreator import BrokerProcessorTaskCreator
-from pkg.pipelines.taskupdator import BrokerProcessorTaskUpdator
-from pkg.pipelines.manager import TaskManager
+from pkg.tasks.taskcreator import BrokerProcessorTaskCreator
+from pkg.tasks.taskupdator import BrokerProcessorTaskUpdator
+from pkg.tasks.manager import TaskManager
 
 
 def setLoggingLevel(
@@ -33,15 +33,15 @@ def setLoggingLevel(
         logging.basicConfig(level=logging.INFO)
 
 
-def initializePipelinesCollection(
+def initializeTasksCollection(
     databaseMasterAddress: str,
     databaseSlaveAddress: str,
     databaseUsername: str,
     databasePassword: str,
 ) -> bool:
 
-    # Create the pipelines collection if it does not exist
-    return PipelineCollectionCreator(
+    # Create the tasks collection if it does not exist
+    return TasksCollectionCreator(
         database=DatabaseMongoDb(
             masterAddress=databaseMasterAddress,
             slaveAddress=databaseSlaveAddress,
@@ -51,7 +51,7 @@ def initializePipelinesCollection(
     ).run()
 
 
-def processPipelineRequests(
+def processTasksRequests(
     databaseMasterAddress: str,
     databaseSlaveAddress: str,
     databaseUsername: str,
@@ -79,7 +79,7 @@ def processPipelineRequests(
         brokerConsumer=BrokerConsumerKafka(
             bootstrapServers=brokerAddress,
             topic="jobsubmitted",
-            consumerGroupId="pipelinemanager",
+            consumerGroupId="tasksmanager",
         ),
     )
 
@@ -100,7 +100,7 @@ def processPipelineRequests(
         brokerConsumer=BrokerConsumerKafka(
             bootstrapServers=brokerAddress,
             topic="taskupdated",
-            consumerGroupId="pipelinemanager",
+            consumerGroupId="tasksmanager",
         ),
     )
 
@@ -129,8 +129,8 @@ def main():
     # Set logging level
     setLoggingLevel(level=cfg.LOGGING_LEVEL)
 
-    # Create the pipelines collection if it does not exist
-    if not initializePipelinesCollection(
+    # Create the tasks collection if it does not exist
+    if not initializeTasksCollection(
         cfg.DATABASE_MASTER_ADDRESS,
         cfg.DATABASE_SLAVE_ADDRESS,
         cfg.DATABASE_USERNAME,
@@ -141,7 +141,7 @@ def main():
     processes: list[multiprocessing.Process] = []
     processes.append(
         multiprocessing.Process(
-            target=processPipelineRequests,
+            target=processTasksRequests,
             args=(
                 cfg.DATABASE_MASTER_ADDRESS,
                 cfg.DATABASE_SLAVE_ADDRESS,

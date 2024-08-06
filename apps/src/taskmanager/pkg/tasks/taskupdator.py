@@ -8,7 +8,7 @@ from pkg.data.tasks import (
     TaskDataObject,
     TaskUpdateRequestDto,
 )
-from pkg.pipelines.brokerprocessor import BrokerProcessor
+from pkg.tasks.brokerprocessor import BrokerProcessor
 
 logger = logging.getLogger(__name__)
 
@@ -124,7 +124,7 @@ class BrokerProcessorTaskUpdator(BrokerProcessor):
     ) -> dict:
         logger.info(f"Getting task [{taskUpdateRequestDto.taskId}]...")
         task = self.database.findOne(
-            databaseName="pipelines",
+            databaseName="tasks",
             collectionName="tasks",
             query={"taskId": taskUpdateRequestDto.taskId},
         )
@@ -157,7 +157,7 @@ class BrokerProcessorTaskUpdator(BrokerProcessor):
 
         logger.info(f"Updating task [{taskDataObject.taskId}]...")
         self.database.update(
-            databaseName="pipelines",
+            databaseName="tasks",
             collectionName="tasks",
             filter={"taskId": taskDataObject.taskId},
             update={"$set": taskDataObject.toDict()},

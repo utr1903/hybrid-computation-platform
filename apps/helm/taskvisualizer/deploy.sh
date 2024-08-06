@@ -44,7 +44,6 @@ fi
 # database
 databaseName="mongodb"
 databaseNamespace="platform"
-# databaseAddressMaster="${databaseName}-arbiter-headless.${databaseNamespace}.svc.cluster.local"
 databaseAddressMaster="${databaseName}-headless.${databaseNamespace}.svc.cluster.local"
 databaseAddressSlave="${databaseName}-headless.${databaseNamespace}.svc.cluster.local"
 databaseUsername="customerorg1"
@@ -58,32 +57,27 @@ cacheAddressSlave="${cacheName}-replicas.${cacheNamespace}.svc.cluster.local"
 cachePort=6379
 cachePassword="megasecret"
 
-# broker
-brokerName="kafka"
-brokerNamespace="platform"
-brokerAddress="${brokerName}.${brokerNamespace}.svc.cluster.local:9092"
-
-# pipelinemanager
-pipelinemanagerName="pipelinemanager"
-pipelinemanagerNamespace="tasks"
-pipelinemanagerImageName="${containerRegistry}/${containerRegistryUsername}/${project}-${pipelinemanagerName}:latest"
-pipelinemanagerReplicas=1
+# taskvisualizer
+taskvisualizerName="taskvisualizer"
+taskvisualizerNamespace="tasks"
+taskvisualizerImageName="${containerRegistry}/${containerRegistryUsername}/${project}-${taskvisualizerName}:latest"
+taskvisualizerReplicas=1
 
 ###################
 ### Deploy Helm ###
 ###################
 
-# pipelinemanager
-helm upgrade ${pipelinemanagerName} \
+# taskvisualizer
+helm upgrade ${taskvisualizerName} \
   --install \
   --wait \
   --debug \
   --create-namespace \
-  --namespace=${pipelinemanagerNamespace} \
-  --set imageName=${pipelinemanagerImageName} \
+  --namespace=${taskvisualizerNamespace} \
+  --set imageName=${taskvisualizerImageName} \
   --set imagePullPolicy="Always" \
-  --set name=${pipelinemanagerName} \
-  --set replicas=${pipelinemanagerReplicas} \
+  --set name=${taskvisualizerName} \
+  --set replicas=${taskvisualizerReplicas} \
   --set database.addresses.master=${databaseAddressMaster} \
   --set database.addresses.slave=${databaseAddressSlave} \
   --set database.username="root" \
@@ -92,5 +86,4 @@ helm upgrade ${pipelinemanagerName} \
   --set cache.addresses.slave=${cacheAddressSlave} \
   --set cache.port=${cachePort} \
   --set cache.password=${cachePassword} \
-  --set broker.address=${brokerAddress} \
   "./chart"

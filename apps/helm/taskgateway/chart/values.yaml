@@ -1,7 +1,7 @@
 ### Variables
 
 # Name
-name: pipelinegateway
+name: taskgateway
 
 # Logs
 logs:

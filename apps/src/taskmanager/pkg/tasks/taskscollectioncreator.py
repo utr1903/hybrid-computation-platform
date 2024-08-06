@@ -6,7 +6,7 @@ from commons.database.database import Database
 logger = logging.getLogger(__name__)
 
 
-class PipelineCollectionCreator:
+class TasksCollectionCreator:
     def __init__(
         self,
         database: Database,
@@ -21,17 +21,17 @@ class PipelineCollectionCreator:
             # Establish connections
             self.establishConnections()
 
-            # Check if the pipelines collection exists
-            collectionExists = self.doesPipelinesCollectionExist()
+            # Check if the tasks collection exists
+            collectionExists = self.doesCollectionExist()
 
-            # Create the pipelines collection if it does not exist
+            # Create the tasks collection if it does not exist
             if not collectionExists:
                 self.createCollection()
 
             return True
 
         except Exception as e:
-            logger.error(f"Error processing pipeline create request: {e}")
+            logger.error(f"Error processing tasks create request: {e}")
             return False
 
     def establishConnections(
@@ -39,18 +39,18 @@ class PipelineCollectionCreator:
     ) -> None:
         self.database.connect()
 
-    def doesPipelinesCollectionExist(
+    def doesCollectionExist(
         self,
     ):
         return self.database.doesCollectionExist(
-            databaseName="pipelines",
+            databaseName="tasks",
             collectionName="tasks",
         )
 
     def createCollection(
         self,
     ):
-        databaseName = "pipelines"
+        databaseName = "tasks"
         collectionName = "tasks"
 
         logger.info(f"Collection [{collectionName}] does not exist. Creating...")

@@ -46,26 +46,26 @@ brokerName="kafka"
 brokerNamespace="platform"
 brokerAddress="${brokerName}.${brokerNamespace}.svc.cluster.local:9092"
 
-# pipelinegateway
-pipelinegatewayName="pipelinegateway"
-pipelinegatewayNamespace="tasks"
-pipelinegatewayImageName="${containerRegistry}/${containerRegistryUsername}/${project}-${pipelinegatewayName}:latest"
-pipelinegatewayReplicas=1
+# taskgateway
+taskgatewayName="taskgateway"
+taskgatewayNamespace="tasks"
+taskgatewayImageName="${containerRegistry}/${containerRegistryUsername}/${project}-${taskgatewayName}:latest"
+taskgatewayReplicas=1
 
 ###################
 ### Deploy Helm ###
 ###################
 
-# pipelinegateway
-helm upgrade ${pipelinegatewayName} \
+# taskgateway
+helm upgrade ${taskgatewayName} \
   --install \
   --wait \
   --debug \
   --create-namespace \
-  --namespace=${pipelinegatewayNamespace} \
-  --set imageName=${pipelinegatewayImageName} \
+  --namespace=${taskgatewayNamespace} \
+  --set imageName=${taskgatewayImageName} \
   --set imagePullPolicy="Always" \
-  --set name=${pipelinegatewayName} \
-  --set replicas=${pipelinegatewayReplicas} \
+  --set name=${taskgatewayName} \
+  --set replicas=${taskgatewayReplicas} \
   --set broker.address=${brokerAddress} \
   "./chart"

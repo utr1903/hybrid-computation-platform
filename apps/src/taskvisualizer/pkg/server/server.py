@@ -101,7 +101,7 @@ class Server:
         self,
     ) -> str | None:
         tasks = self.database.findMany(
-            databaseName="pipelines",
+            databaseName="tasks",
             collectionName="tasks",
             query={"taskStatus": "CREATED"},
             sort=[("timestampCreated", 1)],

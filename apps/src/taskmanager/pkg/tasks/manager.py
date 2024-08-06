@@ -1,7 +1,7 @@
 import logging
 import multiprocessing
 
-from pkg.pipelines.brokerprocessor import BrokerProcessor
+from pkg.tasks.brokerprocessor import BrokerProcessor
 
 
 logger = logging.getLogger(__name__)

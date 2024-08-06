@@ -9,7 +9,7 @@ from pkg.data.tasks import (
     TaskDataObject,
     TaskCreateRequestDto,
 )
-from pkg.pipelines.brokerprocessor import BrokerProcessor
+from pkg.tasks.brokerprocessor import BrokerProcessor
 
 logger = logging.getLogger(__name__)
 
@@ -142,7 +142,7 @@ class BrokerProcessorTaskCreator(BrokerProcessor):
 
         logger.info(f"Inserting task [{taskDataObject.taskId}]...")
         self.database.insert(
-            databaseName="pipelines",
+            databaseName="tasks",
             collectionName="tasks",
             request=taskDataObject.toDict(),
         )
