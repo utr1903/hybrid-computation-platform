@@ -65,10 +65,10 @@ jobgateway="jobgateway"
 jobmanager="jobmanager"
 jobvisualizer="jobvisualizer"
 
-# Pipelines
-pipelinegateway="pipelinegateway"
-pipelinemanager="pipelinemanager"
-pipelinevisualizer="pipelinevisualizer"
+# Tasks
+taskgateway="taskgateway"
+taskmanager="taskmanager"
+taskvisualizer="taskvisualizer"
 
 ### Images ###
 
@@ -81,46 +81,46 @@ jobgatewayImageName="${containerRegistry}/${containerRegistryUsername}/${project
 jobmanagerImageName="${containerRegistry}/${containerRegistryUsername}/${project}-${jobmanager}:latest"
 jobvisualizerImageName="${containerRegistry}/${containerRegistryUsername}/${project}-${jobvisualizer}:latest"
 
-# Pipelines
-pipelinegatewayImageName="${containerRegistry}/${containerRegistryUsername}/${project}-${pipelinegateway}:latest"
-pipelinemanagerImageName="${containerRegistry}/${containerRegistryUsername}/${project}-${pipelinemanager}:latest"
-pipelinevisualizerImageName="${containerRegistry}/${containerRegistryUsername}/${project}-${pipelinevisualizer}:latest"
+# Tasks
+taskgatewayImageName="${containerRegistry}/${containerRegistryUsername}/${project}-${taskgateway}:latest"
+taskmanagerImageName="${containerRegistry}/${containerRegistryUsername}/${project}-${taskmanager}:latest"
+taskvisualizerImageName="${containerRegistry}/${containerRegistryUsername}/${project}-${taskvisualizer}:latest"
 
 ####################
 ### Build & Push ###
 ####################
 
-# # organizationgateway
-# docker build \
-#   --platform "linux/${platform}" \
-#   --tag "${organizationgatewayImageName}" \
-#   --build-arg="APP_NAME=${organizationgateway}" \
-#   "."
-# docker push "${organizationgatewayImageName}"
+# organizationgateway
+docker build \
+  --platform "linux/${platform}" \
+  --tag "${organizationgatewayImageName}" \
+  --build-arg="APP_NAME=${organizationgateway}" \
+  "."
+docker push "${organizationgatewayImageName}"
 
-# # organizationmanager
-# docker build \
-#   --platform "linux/${platform}" \
-#   --tag "${organizationmanagerImageName}" \
-#   --build-arg="APP_NAME=${organizationmanager}" \
-#   "."
-# docker push "${organizationmanagerImageName}"
+# organizationmanager
+docker build \
+  --platform "linux/${platform}" \
+  --tag "${organizationmanagerImageName}" \
+  --build-arg="APP_NAME=${organizationmanager}" \
+  "."
+docker push "${organizationmanagerImageName}"
 
-# # jobgateway
-# docker build \
-#   --platform "linux/${platform}" \
-#   --tag "${jobgatewayImageName}" \
-#   --build-arg="APP_NAME=${jobgateway}" \
-#   "."
-# docker push "${jobgatewayImageName}"
+# jobgateway
+docker build \
+  --platform "linux/${platform}" \
+  --tag "${jobgatewayImageName}" \
+  --build-arg="APP_NAME=${jobgateway}" \
+  "."
+docker push "${jobgatewayImageName}"
 
-# # jobmanager
-# docker build \
-#   --platform "linux/${platform}" \
-#   --tag "${jobmanagerImageName}" \
-#   --build-arg="APP_NAME=${jobmanager}" \
-#   "."
-# docker push "${jobmanagerImageName}"
+# jobmanager
+docker build \
+  --platform "linux/${platform}" \
+  --tag "${jobmanagerImageName}" \
+  --build-arg="APP_NAME=${jobmanager}" \
+  "."
+docker push "${jobmanagerImageName}"
 
 # jobvisualizer
 docker build \
@@ -130,26 +130,26 @@ docker build \
   "."
 docker push "${jobvisualizerImageName}"
 
-# # pipelinegateway
-# docker build \
-#   --platform "linux/${platform}" \
-#   --tag "${pipelinegatewayImageName}" \
-#   --build-arg="APP_NAME=${pipelinegateway}" \
-#   "."
-# docker push "${pipelinegatewayImageName}"
+# taskgateway
+docker build \
+  --platform "linux/${platform}" \
+  --tag "${taskgatewayImageName}" \
+  --build-arg="APP_NAME=${taskgateway}" \
+  "."
+docker push "${taskgatewayImageName}"
 
-# # pipelinemanager
-# docker build \
-#   --platform "linux/${platform}" \
-#   --tag "${pipelinemanagerImageName}" \
-#   --build-arg="APP_NAME=${pipelinemanager}" \
-#   "."
-# docker push "${pipelinemanagerImageName}"
+# taskmanager
+docker build \
+  --platform "linux/${platform}" \
+  --tag "${taskmanagerImageName}" \
+  --build-arg="APP_NAME=${taskmanager}" \
+  "."
+docker push "${taskmanagerImageName}"
 
-# # pipelinevisualizer
-# docker build \
-#   --platform "linux/${platform}" \
-#   --tag "${pipelinevisualizerImageName}" \
-#   --build-arg="APP_NAME=${pipelinevisualizer}" \
-#   "."
-# docker push "${pipelinevisualizerImageName}"
+# taskvisualizer
+docker build \
+  --platform "linux/${platform}" \
+  --tag "${taskvisualizerImageName}" \
+  --build-arg="APP_NAME=${taskvisualizer}" \
+  "."
+docker push "${taskvisualizerImageName}"

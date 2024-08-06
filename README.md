@@ -42,13 +42,13 @@ curl -X GET "http://localhost:8080/jobs?organizationId=ORGANIZATION_ID&jobId=JOB
 Get task to run:
 
 ```shell
-kubectl port-forward -n tasks svc/pipelinevisualizer 8080
+kubectl port-forward -n tasks svc/taskvisualizer 8080
 curl -X GET "http://localhost:8080/task-to-run"
 ```
 
 Update task:
 
 ```shell
-kubectl port-forward -n tasks svc/pipelinegateway 8080
+kubectl port-forward -n tasks svc/taskgateway 8080
 curl -X POST "http://localhost:8080/update" -d '{"organizationId": "ORGANIZATION_ID", "taskId": "TASK_ID", "taskStatus": "TASK_STATUS", "timestampUpdated": TIMESTAMP_UPDATED}'
 ```
