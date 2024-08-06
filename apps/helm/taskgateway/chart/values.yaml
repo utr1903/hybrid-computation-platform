@@ -1,0 +1,32 @@
+### Variables
+
+# Name
+name: taskgateway
+
+# Logs
+logs:
+  # Level
+  level: "INFO"
+
+# Replicas
+replicas: 1
+
+# Resources
+resources:
+  # Requests
+  requests:
+    # CPU
+    cpu: 20m
+    # Memory
+    memory: 50Mi
+  # Limits
+  limits:
+    # CPU
+    cpu: 800m
+    # Memory
+    memory: 1000Mi
+
+# Broker
+broker:
+  # Address
+  address: "kafka.platform.svc.cluster.local:9092"

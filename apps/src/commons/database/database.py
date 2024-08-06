@@ -1,9 +1,4 @@
-import logging
-from datetime import datetime
 from abc import ABC, abstractmethod
-
-
-logger = logging.getLogger(__name__)
 
 
 class Database(ABC):

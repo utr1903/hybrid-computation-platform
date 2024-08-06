@@ -9,19 +9,41 @@ sys.path.append(parent_dir)
 from pkg.config.config import Config
 from pkg.server.server import Server
 from commons.logger.logger import Logger
-from commons.broker.kafkaproducer import BrokerProducerKafka
 from commons.broker.kafkaconsumer import BrokerConsumerKafka
 from commons.database.mongodb import DatabaseMongoDb
 from commons.cache.redis import CacheRedis
-from pkg.jobs.brokerprocessorjobscollectioncreator import (
-    BrokerProcessorJobsCollectionCreator,
+from pkg.tasks.taskscollectioncreator import (
+    TasksCollectionCreator,
 )
-from pkg.jobs.brokerprocessorjobcreator import BrokerProcessorJobCreator
-from pkg.jobs.brokerprocessorjobupdator import BrokerProcessorJobUpdator
-from pkg.jobs.manager import JobManager
+from pkg.tasks.taskcreator import BrokerProcessorTaskCreator
+from pkg.tasks.taskupdator import BrokerProcessorTaskUpdator
+from pkg.tasks.manager import TaskManager
 
 
-def processJobRequests(
+def initializeTasksCollection(
+    logLevel: str,
+    databaseMasterAddress: str,
+    databaseSlaveAddress: str,
+    databaseUsername: str,
+    databasePassword: str,
+) -> bool:
+
+    # Set logger
+    logger = Logger(level=logLevel)
+
+    # Create the tasks collection if it does not exist
+    return TasksCollectionCreator(
+        logger=logger,
+        database=DatabaseMongoDb(
+            masterAddress=databaseMasterAddress,
+            slaveAddress=databaseSlaveAddress,
+            username=databaseUsername,
+            password=databasePassword,
+        ),
+    ).run()
+
+
+def processTasksRequests(
     logLevel: str,
     databaseMasterAddress: str,
     databaseSlaveAddress: str,
@@ -33,12 +55,11 @@ def processJobRequests(
     cachePassword: str,
     brokerAddress: str,
 ):
-
     # Set logger
     logger = Logger(level=logLevel)
 
-    # Instantiate broker processor for creating job collections
-    brokerProcessorJobsCollectionCreator = BrokerProcessorJobsCollectionCreator(
+    # Instantiate broker processor for creating tasks
+    brokerProcessorTaskCreator = BrokerProcessorTaskCreator(
         logger=logger,
         database=DatabaseMongoDb(
             masterAddress=databaseMasterAddress,
@@ -54,13 +75,13 @@ def processJobRequests(
         ),
         brokerConsumer=BrokerConsumerKafka(
             bootstrapServers=brokerAddress,
-            topic="organizationcreated",
-            consumerGroupId="jobmanager",
+            topic="jobsubmitted",
+            consumerGroupId="tasksmanager",
         ),
     )
 
-    # Instantiate broker processor for creating jobs
-    brokerProcessorJobCreator = BrokerProcessorJobCreator(
+    # Instantiate broker processor for updating tasks
+    brokerProcessorTaskUpdator = BrokerProcessorTaskUpdator(
         logger=logger,
         database=DatabaseMongoDb(
             masterAddress=databaseMasterAddress,
@@ -76,42 +97,16 @@ def processJobRequests(
         ),
         brokerConsumer=BrokerConsumerKafka(
             bootstrapServers=brokerAddress,
-            topic="createjob",
-            consumerGroupId="jobmanager",
-        ),
-    )
-
-    # Instantiate broker processor for creating jobs
-    brokerProcessorJobUpdator = BrokerProcessorJobUpdator(
-        logger=logger,
-        database=DatabaseMongoDb(
-            masterAddress=databaseMasterAddress,
-            slaveAddress=databaseSlaveAddress,
-            username=databaseUsername,
-            password=databasePassword,
-        ),
-        cache=CacheRedis(
-            masterAddress=cacheMasterAddress,
-            slaveAddress=cacheSlaveAddress,
-            port=int(cachePort),
-            password=cachePassword,
-        ),
-        brokerConsumer=BrokerConsumerKafka(
-            bootstrapServers=brokerAddress,
-            topic="updatejob",
-            consumerGroupId="jobmanager",
-        ),
-        brokerProducer=BrokerProducerKafka(
-            bootstrapServers=brokerAddress,
+            topic="taskupdated",
+            consumerGroupId="tasksmanager",
         ),
     )
 
     # Run the job creator
-    JobManager(
+    TaskManager(
         brokerProcessors=[
-            brokerProcessorJobsCollectionCreator,
-            brokerProcessorJobCreator,
-            brokerProcessorJobUpdator,
+            brokerProcessorTaskCreator,
+            brokerProcessorTaskUpdator,
         ],
     ).run()
 
@@ -127,12 +122,22 @@ def main():
     cfg = Config()
     if not cfg.validate():
         logging.error("Invalid configuration.")
-        return
+        exit(1)
+
+    # Create the tasks collection if it does not exist
+    if not initializeTasksCollection(
+        cfg.LOGGING_LEVEL,
+        cfg.DATABASE_MASTER_ADDRESS,
+        cfg.DATABASE_SLAVE_ADDRESS,
+        cfg.DATABASE_USERNAME,
+        cfg.DATABASE_PASSWORD,
+    ):
+        exit(1)
 
     processes: list[multiprocessing.Process] = []
     processes.append(
         multiprocessing.Process(
-            target=processJobRequests,
+            target=processTasksRequests,
             args=(
                 cfg.LOGGING_LEVEL,
                 cfg.DATABASE_MASTER_ADDRESS,

@@ -1,12 +1,9 @@
-import logging
-
 from typing import Tuple
 from urllib.parse import quote_plus
 from pymongo import MongoClient
 
-from commons.database.database import Database
 
-logger = logging.getLogger(__name__)
+from commons.database.database import Database
 
 
 class DatabaseMongoDb(Database):

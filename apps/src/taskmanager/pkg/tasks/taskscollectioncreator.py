@@ -4,7 +4,7 @@ from commons.logger.logger import Logger
 from commons.database.database import Database
 
 
-class OrganizationCollectionCreator:
+class TasksCollectionCreator:
     def __init__(
         self,
         logger: Logger,
@@ -21,10 +21,10 @@ class OrganizationCollectionCreator:
             # Establish connections
             self.establishConnections()
 
-            # Check if the organizations collection exists
-            collectionExists = self.doesOrganizationsCollectionExist()
+            # Check if the tasks collection exists
+            collectionExists = self.doesCollectionExist()
 
-            # Create the organizations collection if it does not exist
+            # Create the tasks collection if it does not exist
             if not collectionExists:
                 self.createCollection()
 
@@ -33,7 +33,7 @@ class OrganizationCollectionCreator:
         except Exception as e:
             self.logger.log(
                 logging.ERROR,
-                "Error processing organization create request.",
+                f"Error processing tasks create request: {e}",
                 attrs={"error": str(e)},
             )
             return False
@@ -43,19 +43,19 @@ class OrganizationCollectionCreator:
     ) -> None:
         self.database.connect()
 
-    def doesOrganizationsCollectionExist(
+    def doesCollectionExist(
         self,
     ):
         return self.database.doesCollectionExist(
-            databaseName="organizations",
-            collectionName="organizations",
+            databaseName="tasks",
+            collectionName="tasks",
         )
 
     def createCollection(
         self,
     ):
-        databaseName = "organizations"
-        collectionName = "organizations"
+        databaseName = "tasks"
+        collectionName = "tasks"
 
         self.logger.log(
             logging.INFO,
@@ -65,7 +65,7 @@ class OrganizationCollectionCreator:
         self.database.createIndexOnCollection(
             databaseName=databaseName,
             collectionName=collectionName,
-            indexKey="organizationId",
+            indexKey="taskId",
             isUnique=True,
         )
         self.logger.log(

@@ -1,9 +1,6 @@
-import logging
 from kafka import KafkaConsumer
 
 from commons.broker.consumer import BrokerConsumer
-
-logger = logging.getLogger(__name__)
 
 
 class BrokerConsumerKafka(BrokerConsumer):
@@ -30,12 +27,8 @@ class BrokerConsumerKafka(BrokerConsumer):
         self,
         consumeFunction,
     ):
-        logger.info("Starting consumer...")
         self.consumer.subscribe([self.topic])
 
         for message in self.consumer:
-            try:
-                # Consume message with given external function
-                consumeFunction(message.value)
-            except Exception as e:
-                logger.error(e)
+            # Consume message with given external function
+            consumeFunction(message.value)

@@ -2,6 +2,7 @@ import json
 import logging
 import uuid
 
+from commons.logger.logger import Logger
 from commons.database.database import Database
 from commons.broker.producer import BrokerProducer
 from commons.broker.consumer import BrokerConsumer
@@ -10,16 +11,16 @@ from pkg.data.organizations import (
     OrganizationCreateRequestDto,
 )
 
-logger = logging.getLogger(__name__)
-
 
 class OrganizationCreator:
     def __init__(
         self,
+        logger: Logger,
         database: Database,
         brokerProducer: BrokerProducer,
         brokerConsumer: BrokerConsumer,
     ):
+        self.logger = logger
         self.database = database
         self.brokerProducer = brokerProducer
         self.brokerConsumer = brokerConsumer
@@ -46,8 +47,6 @@ class OrganizationCreator:
     ) -> None:
 
         try:
-            logger.info(message)
-
             # Parse message
             messageParsed = self.parseMessage(message)
 
@@ -68,19 +67,32 @@ class OrganizationCreator:
             self.publishOrganizationCreated(organizationDataObject)
 
         except Exception as e:
-            logger.error(e)
+            self.logger.log(
+                logging.ERROR,
+                "Error processing organization create request.",
+                attrs={
+                    "error": str(e),
+                },
+            )
 
     def parseMessage(
         self,
         message,
     ) -> dict:
 
-        logger.info("Parsing message...")
+        self.logger.log(
+            logging.INFO,
+            "Parsing message...",
+        )
 
         try:
             messageParsed = json.loads(message)
         except Exception as e:
-            logger.error(e)
+            self.logger.log(
+                logging.ERROR,
+                f"Message parsing failed.",
+                attrs={"error": str(e)},
+            )
             raise Exception("Message parsing failed: {e}")
 
         self.validateMessage(messageParsed)
@@ -92,7 +104,10 @@ class OrganizationCreator:
         messageParsed,
     ) -> None:
 
-        logger.info("Validating message...")
+        self.logger.log(
+            logging.INFO,
+            "Validating message...",
+        )
 
         missingFields = []
         if "organizationName" not in messageParsed:
@@ -100,10 +115,16 @@ class OrganizationCreator:
 
         if len(missingFields) > 0:
             msg = f"There are missing fields which have to be defined: {missingFields}"
-            logger.error(msg)
+            self.logger.log(
+                logging.ERROR,
+                msg,
+            )
             raise Exception(msg)
 
-        logger.info("Message validation succeeded.")
+        self.logger.log(
+            logging.INFO,
+            "Message validation succeeded.",
+        )
 
     def extractOrganizationCreateRequestDto(
         self,
@@ -128,27 +149,33 @@ class OrganizationCreator:
         organizationDataObject: OrganizationDataObject,
     ) -> None:
 
-        logger.info(f"Inserting job [{organizationDataObject.organizationId}]...")
+        self.logger.log(
+            logging.INFO,
+            f"Inserting job [{organizationDataObject.organizationId}]...",
+        )
         self.database.insert(
             databaseName="organizations",
             collectionName="organizations",
             request=organizationDataObject.toDict(),
         )
-        logger.info(
-            f"Inserting job [{organizationDataObject.organizationId}] succeeded."
+        self.logger.log(
+            logging.INFO,
+            f"Inserting job [{organizationDataObject.organizationId}] succeeded.",
         )
 
     def publishOrganizationCreated(
         self,
         organizationDataObject: OrganizationDataObject,
     ) -> None:
-        logger.info(
-            f"Publishing created organization [{organizationDataObject.organizationName}] to [organizationcreated] topic..."
+        self.logger.log(
+            logging.INFO,
+            f"Publishing created organization [{organizationDataObject.organizationName}] to [organizationcreated] topic...",
         )
         self.brokerProducer.produce(
             "organizationcreated",
             json.dumps(organizationDataObject.toDict()).encode("ascii"),
         )
-        logger.info(
-            f"Publishing created organization [{organizationDataObject.organizationName}] to [organizationcreated] topic succeeded."
+        self.logger.log(
+            logging.INFO,
+            f"Publishing created organization [{organizationDataObject.organizationName}] to [organizationcreated] topic succeeded.",
         )

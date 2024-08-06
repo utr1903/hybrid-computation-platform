@@ -9,6 +9,7 @@ sys.path.append(parent_dir)
 
 from pkg.config.config import Config
 from pkg.server.server import Server
+from commons.logger.logger import Logger
 from commons.broker.kafkaproducer import BrokerProducerKafka
 from commons.broker.kafkaconsumer import BrokerConsumerKafka
 from commons.database.mongodb import DatabaseMongoDb
@@ -18,25 +19,16 @@ from pkg.organizations.organizationcollectioncreator import (
 from pkg.organizations.organizationcreator import OrganizationCreator
 
 
-def setLoggingLevel(
-    level,
-):
-    if level == "DEBUG":
-        logging.basicConfig(level=logging.DEBUG)
-    elif level == "INFO":
-        logging.basicConfig(level=logging.INFO)
-    elif level == "ERROR":
-        logging.basicConfig(level=logging.ERROR)
-    else:
-        logging.basicConfig(level=logging.INFO)
-
-
 def initializeOrganizationsCollection(
+    logLevel: str,
     databaseMasterAddress: str,
     databaseSlaveAddress: str,
     databaseUsername: str,
     databasePassword: str,
 ) -> bool:
+
+    # Set logger
+    logger = Logger(level=logLevel)
 
     mongodb = DatabaseMongoDb(
         masterAddress=databaseMasterAddress,
@@ -47,11 +39,13 @@ def initializeOrganizationsCollection(
 
     # Create the organizations collection if it does not exist
     return OrganizationCollectionCreator(
+        logger=logger,
         database=mongodb,
     ).run()
 
 
 def processOrganizationRequests(
+    logLevel: str,
     databaseMasterAddress: str,
     databaseSlaveAddress: str,
     databaseUsername: str,
@@ -59,6 +53,9 @@ def processOrganizationRequests(
     brokerAddress: str,
     brokerConsumerGroup: str,
 ):
+    # Set logger
+    logger = Logger(level=logLevel)
+
     # Instantiate MongoDB database
     mongodb = DatabaseMongoDb(
         masterAddress=databaseMasterAddress,
@@ -81,6 +78,7 @@ def processOrganizationRequests(
 
     # Run the job creator
     OrganizationCreator(
+        logger=logger,
         database=mongodb,
         brokerProducer=kafkaProducer,
         brokerConsumer=kafkaConsumer,
@@ -100,11 +98,9 @@ def main():
         logging.error("Invalid configuration.")
         exit(1)
 
-    # Set logging level
-    setLoggingLevel(level=cfg.LOGGING_LEVEL)
-
     # Create the organizations collection if it does not exist
     if not initializeOrganizationsCollection(
+        cfg.LOGGING_LEVEL,
         cfg.DATABASE_MASTER_ADDRESS,
         cfg.DATABASE_SLAVE_ADDRESS,
         cfg.DATABASE_USERNAME,
@@ -117,6 +113,7 @@ def main():
         multiprocessing.Process(
             target=processOrganizationRequests,
             args=(
+                cfg.LOGGING_LEVEL,
                 cfg.DATABASE_MASTER_ADDRESS,
                 cfg.DATABASE_SLAVE_ADDRESS,
                 cfg.DATABASE_USERNAME,

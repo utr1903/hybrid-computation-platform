@@ -1,15 +1,19 @@
 import json
 import logging
+import uuid
 
 from commons.logger.logger import Logger
 from commons.database.database import Database
 from commons.cache.cache import Cache
 from commons.broker.consumer import BrokerConsumer
-from pkg.data.jobs import OrganizationDataObject
-from pkg.jobs.brokerprocessor import BrokerProcessor
+from pkg.data.tasks import (
+    TaskDataObject,
+    TaskCreateRequestDto,
+)
+from pkg.tasks.brokerprocessor import BrokerProcessor
 
 
-class BrokerProcessorJobsCollectionCreator(BrokerProcessor):
+class BrokerProcessorTaskCreator(BrokerProcessor):
     def __init__(
         self,
         logger: Logger,
@@ -30,7 +34,7 @@ class BrokerProcessorJobsCollectionCreator(BrokerProcessor):
 
         # Consume messages
         self.brokerConsumer.consume(
-            self.processJobsCollectionCreateRequest,
+            self.processTaskCreateRequest,
         )
 
     def establishConnections(
@@ -40,38 +44,28 @@ class BrokerProcessorJobsCollectionCreator(BrokerProcessor):
         self.cache.connect()
         self.brokerConsumer.connect()
 
-    def processJobsCollectionCreateRequest(
+    def processTaskCreateRequest(
         self,
-        message,
+        message: dict,
     ) -> None:
 
         try:
             # Parse message
             messageParsed = self.parseMessage(message)
 
-            # Extract organization data object
-            organizationDataObject = self.extractOrganizationDataObject(messageParsed)
+            # Extract task create request DTO
+            taskCreateRequestDto = self.extractTaskCreateRequestDto(messageParsed)
 
-            # Check if the jobs collection for the organization exists
-            collectionExists = self.doesCollectionExist(
-                organizationDataObject.organizationId,
-            )
+            # Create task data object
+            taskDataObject = self.createTaskDataObject(taskCreateRequestDto)
 
-            # Create the jobs collection if it does not exist
-            if not collectionExists:
-                self.createCollection(
-                    organizationDataObject.organizationId,
-                )
-            else:
-                self.logger.log(
-                    logging.WARNING,
-                    f"Collection [jobs] in database [{organizationDataObject.organizationId}] already exists.",
-                )
+            # Add task to tasks collection
+            self.addTaskToTasksCollection(taskDataObject)
 
         except Exception as e:
             self.logger.log(
                 logging.ERROR,
-                f"Error processing jobs collection creation.",
+                "Error processing task create request.",
                 attrs={"error": str(e)},
             )
 
@@ -113,11 +107,17 @@ class BrokerProcessorJobsCollectionCreator(BrokerProcessor):
         if "organizationId" not in messageParsed:
             missingFields.append("organizationId")
 
-        if "organizationName" not in messageParsed:
-            missingFields.append("organizationName")
+        if "jobId" not in messageParsed:
+            missingFields.append("jobId")
+
+        if "jobVersion" not in messageParsed:
+            missingFields.append("jobVersion")
+
+        if "timestampUpdate" not in messageParsed:
+            missingFields.append("timestampUpdate")
 
         if len(missingFields) > 0:
-            msg = "There are missing fields which have to be defined."
+            msg = f"There are missing fields which have to be defined: {missingFields}"
             self.logger.log(
                 logging.ERROR,
                 msg,
@@ -132,43 +132,46 @@ class BrokerProcessorJobsCollectionCreator(BrokerProcessor):
             "Message validation succeeded.",
         )
 
-    def extractOrganizationDataObject(
+    def extractTaskCreateRequestDto(
         self,
         message: dict,
-    ) -> OrganizationDataObject:
+    ) -> TaskCreateRequestDto:
 
-        return OrganizationDataObject(
+        return TaskCreateRequestDto(
             organizationId=message.get("organizationId"),
-            organizationName=message.get("organizationName"),
+            jobId=message.get("jobId"),
+            jobVersion=message.get("jobVersion"),
+            timestampCreated=message.get("timestampUpdate"),
         )
 
-    def doesCollectionExist(
+    def createTaskDataObject(
         self,
-        databaseName: str,
-    ):
-        return self.database.doesCollectionExist(
-            databaseName=databaseName,
-            collectionName="jobs",
+        taskCreateRequestDto: TaskCreateRequestDto,
+    ) -> TaskDataObject:
+        return TaskDataObject(
+            organizationId=taskCreateRequestDto.organizationId,
+            jobId=taskCreateRequestDto.jobId,
+            jobVersion=taskCreateRequestDto.jobVersion,
+            timestampCreated=taskCreateRequestDto.timestampCreated,
+            taskId=str(uuid.uuid4()),
+            taskStatus="CREATED",
         )
 
-    def createCollection(
+    def addTaskToTasksCollection(
         self,
-        databaseName: str,
-    ):
-        collectionName = "jobs"
+        taskDataObject: TaskDataObject,
+    ) -> None:
 
         self.logger.log(
             logging.INFO,
-            f"Collection [{collectionName}] does not exist. Creating...",
+            f"Inserting task [{taskDataObject.taskId}]...",
         )
-        self.database.createCollection(databaseName, collectionName)
-        self.database.createIndexOnCollection(
-            databaseName=databaseName,
-            collectionName=collectionName,
-            indexKey="jobId",
-            isUnique=True,
+        self.database.insert(
+            databaseName="tasks",
+            collectionName="tasks",
+            request=taskDataObject.toDict(),
         )
         self.logger.log(
             logging.INFO,
-            f"Creating collection [{collectionName}] succeeded.",
+            f"Inserting task [{taskDataObject.taskId}] succeeded.",
         )
